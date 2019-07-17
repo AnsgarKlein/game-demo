@@ -39,7 +39,7 @@ bool GameObject::render() {
     }
 
     //return render_static(sprites->get_texture(), x, y);
-    return sprites->render(x, y);
+    return sprites->render(x * 32, y * 32);
 
     //char *str = sprites->get_str();
     //if (strcmp(str, "sprites/box.png") == 0) {

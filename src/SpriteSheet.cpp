@@ -16,26 +16,35 @@ static bool INTERNAL_render_static(const SDL_Texture *text, unsigned int x, unsi
     clip.w = GRID_SIZE;
     clip.h = GRID_SIZE;
 
-    // Dont render if position is offscreen (off camera)
-    if (x < CAMERA_X || x - CAMERA_X > CAMERA_WIDTH) {
+    // Don't render if position is off camera
+    //    (Actually do render the tile exactly next to the 
+    //    camera because it could partly be inside the camera)
+    if (x + GRID_SIZE < CAMERA_X || y + GRID_SIZE < CAMERA_Y) {
         return false;
     }
-    if (y < CAMERA_Y || y - CAMERA_Y > CAMERA_HEIGHT) {
+    if (x + GRID_SIZE - CAMERA_X > CAMERA_WIDTH) {
+        return false;
+    }
+    if (y + GRID_SIZE - CAMERA_Y > CAMERA_HEIGHT) {
         return false;
     }
 
-    // Calculate position relative to camera
-    unsigned int pos_x = x - CAMERA_X;
-    unsigned int pos_y = y - CAMERA_Y;
+    // Calculate position inside of camera
+    int pos_x = x - CAMERA_X;
+    int pos_y = y - CAMERA_Y;
+
+    // Note:
+    // This position could actually be negative.
+    // For example if a sprite begins off camera but is partly inside
+    // the camera.
+    // If we give this negative coordinate to SDL it seems to do the
+    // right thing. If this makes problems in the future we can cut out
+    // the necessary part of the texture and render it at coordinate 0.
 
     // Set viewport to field
     SDL_Rect view;
-    //view.x = ORIGIN_X + (x * GRID_SIZE * SCALE);
-    //view.y = ORIGIN_Y + (y * GRID_SIZE * SCALE);
-    //view.w = GRID_SIZE * SCALE;
-    //view.h = GRID_SIZE * SCALE;
-    view.x = ORIGIN_X + (pos_x * GRID_SIZE * SCALE);
-    view.y = ORIGIN_Y + (pos_y * GRID_SIZE * SCALE);
+    view.x = ORIGIN_X + (pos_x * SCALE);
+    view.y = ORIGIN_Y + (pos_y * SCALE);
     view.w = GRID_SIZE * SCALE;
     view.h = GRID_SIZE * SCALE;
 
@@ -495,7 +504,6 @@ bool SpriteSheet::render(int x, int y) {
 }
 
 bool SpriteSheet::render(int x, int y, const char *state_str) {
-    // Go through all states and search correct one
     SpriteState *state = get_state(state_str);
 
     // We didnt find the state we were looking for
@@ -504,7 +512,7 @@ bool SpriteSheet::render(int x, int y, const char *state_str) {
             fprintf(stderr, "State '%s' does not exist - rendering default state\n", state_str);
             return render(x, y);
         } else {
-            fprintf(stderr, "Could not render defautl state\n");
+            fprintf(stderr, "Could not render default state\n");
             return false;
         }
     }

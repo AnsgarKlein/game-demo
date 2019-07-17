@@ -77,7 +77,7 @@ MoveType Player::check_move(int dx, int dy) {
 **/
 bool Player::render() {
     //return render_with_direction(this->sprites->get_texture(), x, y, player_facing);
-    return this->sprites->render(x, y);
+    return this->sprites->render(x * GRID_SIZE, y * GRID_SIZE);
 }
 
 /**
@@ -114,7 +114,7 @@ void Player::move(int dx, int dy) {
     if (type == MOVE_TYPE_ALONE) {
         x += dx;
         y += dy;
-        update_camera(x, y);
+        update_camera(x * GRID_SIZE, y * GRID_SIZE);
         return;
     }
 

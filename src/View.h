@@ -35,7 +35,7 @@ void update_window_title(float fps);
 
 void update_camera(int middle_x, int middle_y);
 
-//void initialize_scaler();
+void update_scaler();
 
 void update_window_properties();
 

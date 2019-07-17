@@ -4,6 +4,7 @@
 #include "SpriteHandler.h"
 #include "Target.h"
 #include "Level.h"
+#include "View.h"
 
 using namespace std;
 
@@ -60,8 +61,8 @@ bool Box::push(int dx, int dy) {
 bool Box::render() {
     // Box gets only animated if it is on top of a target
     if (is_on_target()) {
-        return sprites->render(x, y, "shining");
+        return sprites->render(x * GRID_SIZE, y * GRID_SIZE, "shining");
     } else {
-        return sprites->render(x, y);
+        return sprites->render(x * GRID_SIZE, y * GRID_SIZE);
     }
 }

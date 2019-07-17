@@ -7,11 +7,14 @@
 #include "Player.h"
 #include "Direction.h"
 
+// TODO: Remove asserts
+#include "assert.h"
+
 //Screen dimension
-static unsigned int WINDOW_WIDTH  = 660;
-static unsigned int WINDOW_HEIGHT = 660;
-//static unsigned int WINDOW_WIDTH  = 1200;
-//static unsigned int WINDOW_HEIGHT = 800;
+//static unsigned int WINDOW_WIDTH  = 660;
+//static unsigned int WINDOW_HEIGHT = 660;
+static unsigned int WINDOW_WIDTH  = 1200;
+static unsigned int WINDOW_HEIGHT = 800;
 
 const uint8_t GRID_SIZE = 32;
 
@@ -19,8 +22,8 @@ static bool WINDOW_MINIMIZED = false;
 
 float SCALE = 1;
 
-unsigned int ORIGIN_X;
-unsigned int ORIGIN_Y;
+unsigned int ORIGIN_X = 0;
+unsigned int ORIGIN_Y = 0;
 
 unsigned int CAMERA_ORIGIN_X;
 unsigned int CAMERA_ORIGIN_Y;
@@ -28,8 +31,8 @@ unsigned int CAMERA_ORIGIN_Y;
 unsigned int CAMERA_X = 0;
 unsigned int CAMERA_Y = 0;
 
-const unsigned int TARGET_CAMERA_WIDTH  = 15;
-const unsigned int TARGET_CAMERA_HEIGHT = 0;
+const unsigned int TARGET_CAMERA_WIDTH  = 0;
+const unsigned int TARGET_CAMERA_HEIGHT = 18 * GRID_SIZE;
 
 unsigned int CAMERA_WIDTH  = TARGET_CAMERA_WIDTH;
 unsigned int CAMERA_HEIGHT = TARGET_CAMERA_HEIGHT;
@@ -157,16 +160,11 @@ void update_window_title(float fps) {
 }
 
 void update_camera(int middle_x, int middle_y) {
-    int camera_wh = (CAMERA_WIDTH  % 2 == 0) ? (CAMERA_WIDTH  / 2) : (CAMERA_WIDTH  / 2 + 1);
-    int camera_hh = (CAMERA_HEIGHT % 2 == 0) ? (CAMERA_HEIGHT / 2) : (CAMERA_HEIGHT / 2 + 1);
+    const int camera_wh = CAMERA_WIDTH  / 2;
+    const int camera_hh = CAMERA_HEIGHT / 2;
 
-    int level_w = CURRENT_LEVEL->get_width();
-    int level_h = CURRENT_LEVEL->get_height();
-
-    printf("camera_size: (%d * %d)\n", CAMERA_WIDTH, CAMERA_HEIGHT);
-    printf("level_size:  (%d * %d)\n", level_w, level_h);
-    printf("middle:      (%d * %d)\n", middle_x, middle_y);
-    printf("\n");
+    const int level_w = CURRENT_LEVEL->get_width()  * GRID_SIZE;
+    const int level_h = CURRENT_LEVEL->get_height() * GRID_SIZE;
 
     // Set x and y position
     if (middle_x < camera_wh) {
@@ -184,115 +182,124 @@ void update_camera(int middle_x, int middle_y) {
     } else {
         CAMERA_Y = middle_y - camera_hh;
     }
+
+    //printf("level_size:    (%d * %d)\n", level_w, level_h);
+    //printf("camera_size:   (%d * %d)\n", CAMERA_WIDTH, CAMERA_HEIGHT);
+    //printf("camera_pos:    (%d , %d)\n", CAMERA_X, CAMERA_Y);
+    //printf("camera_middle: (%d * %d)\n", middle_x, middle_y);
+    //printf("\n");
 }
 
-void initialize_scaler() {
-    // TODO: Change scaling calculation
-
-    // We should always show ~40 tiles in width
-    //unsigned int TARGET_W_TILES = 40;
+void update_scaler() {
     SCALE = 1;
     CAMERA_WIDTH  = TARGET_CAMERA_WIDTH;
     CAMERA_HEIGHT = TARGET_CAMERA_HEIGHT;
 
-    //printf("Want to fit %d tiles (each %dpx => %dpx) horizontally inside window of %dx%d\n",
-    //        CAMERA_WIDTH, GRID_SIZE, CAMERA_WIDTH * GRID_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    // If desired amount of tiles dont fit into window width at scaling 1
-    printf("%d * %dpx * %d = %d\n", CAMERA_WIDTH, GRID_SIZE, (int)SCALE, CAMERA_WIDTH * GRID_SIZE * (int)SCALE);
-    printf("window width: %d\n", WINDOW_WIDTH);
-    if (CAMERA_WIDTH * GRID_SIZE * SCALE > WINDOW_WIDTH) {
-        // Reduce camera width
-        while (CAMERA_WIDTH * GRID_SIZE * SCALE > WINDOW_WIDTH) {
-            printf("foo\n");
-            CAMERA_WIDTH--;
+    // Check if
+    // A) Desired amount of tiles dont fit into window height at scaling 1
+    // B) Desired amount of tiles fit into window height but dont fill the window
+    if (CAMERA_HEIGHT * SCALE > WINDOW_HEIGHT) {
+        // Reduce camera height
+        while (CAMERA_HEIGHT * SCALE > WINDOW_HEIGHT) {
+            CAMERA_HEIGHT--;
         }
 
-        // Adjust camera height
-        while (CAMERA_HEIGHT * GRID_SIZE * SCALE < WINDOW_HEIGHT) {
-            CAMERA_HEIGHT++;
+        // Adjust camera width accordingly
+        while (CAMERA_WIDTH * SCALE < WINDOW_WIDTH) {
+            CAMERA_WIDTH++;
         }
-        CAMERA_HEIGHT--;
+        CAMERA_WIDTH--;
+    } else {
+        // TODO: Replace loops with calculations
 
-        return;
+        // Calculate the maximum naive scaling we can apply
+        SCALE = WINDOW_HEIGHT / CAMERA_HEIGHT;
+
+        //printf("\nMaximum naive scaling is %dX\n", (int)SCALE);
+
+        // If desired amount of tiles don't fill the window at maximum scaling
+        // there are two possible ways to handle this.
+        //   1) Increase camera size until window is filled.
+        //   2) Increase scaling by one more and decrease camera size
+        //      until window is filled.
+
+        // 1)
+        unsigned int camera_height1 = CAMERA_HEIGHT;
+        int scale1 = SCALE;
+        while (camera_height1 * scale1 < WINDOW_HEIGHT) {
+            camera_height1++;
+        }
+        camera_height1--;
+
+        // 2)
+        unsigned int camera_height2 = CAMERA_HEIGHT;
+        int scale2 = SCALE + 1;
+        while (camera_height2 * scale2 > WINDOW_HEIGHT) {
+            camera_height2--;
+        }
+
+        //printf("Want to have a height of %dpx (%d fields)\n", TARGET_CAMERA_HEIGHT, TARGET_CAMERA_HEIGHT / GRID_SIZE);
+        //printf("Possibility 1: scale @%dX with height %d (%d fields)\n", scale1, camera_height1, camera_height1 / GRID_SIZE);
+        //printf("Possibility 2: scale @%dX with height %d (%d fields)\n", scale2, camera_height2, camera_height2 / GRID_SIZE);
+
+        // Decide which way has the lower difference to the target height
+        int diff1 = (int)TARGET_CAMERA_HEIGHT - (int)camera_height1;
+        int diff2 = (int)TARGET_CAMERA_HEIGHT - (int)camera_height2;
+        if (diff1 < 0) diff1 *= -1;
+        if (diff2 < 0) diff2 *= -1;
+        if (diff1 < diff2) {
+            //printf("Deciding for path 1\n");
+            SCALE = scale1;
+            CAMERA_HEIGHT = camera_height1;
+        } else {
+            //printf("Deciding for path 2\n");
+            SCALE = scale2;
+            CAMERA_HEIGHT = camera_height2;
+        }
+
+        // Adjust width accordingly to fill camera width
+        while (CAMERA_WIDTH * SCALE < WINDOW_WIDTH) {
+            CAMERA_WIDTH++;
+        }
+        CAMERA_WIDTH--;
+
+        //printf("Camera has size %d * %d (%d*%d) (scaling @%dX)\n",
+        //       CAMERA_WIDTH, CAMERA_HEIGHT,
+        //       CAMERA_WIDTH / GRID_SIZE,
+        //       CAMERA_HEIGHT / GRID_SIZE,
+        //       (int)SCALE);
     }
 
-    // If desired amount of tiles dont fill the window scale up
-    while (CAMERA_WIDTH * GRID_SIZE * SCALE < WINDOW_WIDTH) {
-        SCALE++;
-    }
-    SCALE--;
-
-    // After scaling up to the correct factor we increase camera size
-    while (CAMERA_WIDTH * GRID_SIZE * SCALE < WINDOW_WIDTH) {
-        CAMERA_WIDTH++;
-    }
-    CAMERA_WIDTH--;
-
-    while (CAMERA_HEIGHT * GRID_SIZE * SCALE < WINDOW_HEIGHT) {
-        CAMERA_HEIGHT++;
-    }
-    CAMERA_HEIGHT--;
-
-    // If desired amount of tiles dont fit into window size we need to show fewer tiles
-    // TODO: If desired amount of tiles dont fit to we scale down or show fewer tiles?
-    //while (TARGET_W_TILES * GRID_SIZE > WINDOW_WIDTH) {
-    //    printf("  %d tiles (%d x %dpx = %dpx) don't fit into window width (%dpx) showing fewer...\n",
-    //            TARGET_W_TILES,
-    //            TARGET_W_TILES, GRID_SIZE, TARGET_W_TILES * GRID_SIZE,
-    //            WINDOW_WIDTH);
-    //    TARGET_W_TILES--;
-    //}
-
-    // Calculate scale size
-    //{
-    //    // Board width and height both have to fit after scaling
-    //    float scale1 = WINDOW_WIDTH  / (CURRENT_LEVEL->get_width()  * (float)GRID_SIZE);
-    //    float scale2 = WINDOW_HEIGHT / (CURRENT_LEVEL->get_height() * (float)GRID_SIZE);
-    //    SCALE = (scale1 > scale2) ? scale2 : scale1;
-
-    //    // TODO: Change scaler to only scale in steps of 1.0
-
-    //    // Only adjust scale in steps of 0.5 so distortion does not get too bad
-    //    int r = 0;
-    //    while (SCALE >= 0.5) {
-    //        SCALE -= 0.5;
-    //        r++;
-    //    }
-    //    SCALE = 0.5f * r;
-
-    //    // Dont scale to zero
-    //    if (SCALE < 0.5) {
-    //        SCALE = 0.5;
-    //    }
-    //}
-
-    //printf("  Scaling with %f means level (%dx%d) is %fpx x %fpx\n",
-    //        SCALE,
-    //        CURRENT_LEVEL->get_width(),
-    //        CURRENT_LEVEL->get_height(),
-    //        CURRENT_LEVEL->get_width() * GRID_SIZE * SCALE,
-    //        CURRENT_LEVEL->get_height() * GRID_SIZE * SCALE);
-
+    // TODO: Create own function for calculating ORIGIN
     // If level is smaller than the camera center it inside camera
-    if (CURRENT_LEVEL->get_width() < CAMERA_WIDTH) {
-        ORIGIN_X  = WINDOW_WIDTH  - (CAMERA_WIDTH  * GRID_SIZE * SCALE);
-        ORIGIN_X /= 2;
-    } else {
-        ORIGIN_X = 0;
-    }
+    //if (CURRENT_LEVEL->get_width() < CAMERA_WIDTH) {
+    //    ORIGIN_X  = WINDOW_WIDTH  - (CAMERA_WIDTH  * SCALE);
+    //    ORIGIN_X /= 2;
+    //} else {
+    //    ORIGIN_X = 0;
+    //}
 
-    if (CURRENT_LEVEL->get_height() < CAMERA_HEIGHT) {
-        ORIGIN_Y  = WINDOW_HEIGHT - (CAMERA_HEIGHT * GRID_SIZE * SCALE);
-        ORIGIN_Y /= 2;
-    } else {
-        ORIGIN_Y = 0;
-    }
+    //if (CURRENT_LEVEL->get_height() < CAMERA_HEIGHT) {
+    //    ORIGIN_Y  = WINDOW_HEIGHT - (CAMERA_HEIGHT * SCALE);
+    //    ORIGIN_Y /= 2;
+    //} else {
+    //    ORIGIN_Y = 0;
+    //}
 
+    //ORIGIN_X  = WINDOW_WIDTH  - (CAMERA_WIDTH  * SCALE);
+    //ORIGIN_X /= 2;
+    //ORIGIN_Y  = WINDOW_HEIGHT - (CAMERA_HEIGHT * SCALE);
+    //ORIGIN_Y /= 2;
+
+    ORIGIN_X = 0;
+    ORIGIN_Y = 0;
+
+    //printf("ORIGIN: (%d, %d)\n", ORIGIN_X, ORIGIN_Y);
 }
 
+// TODO: Rename this function and only call it on window change
 void update_window_properties() {
-    // Check if window has been minimized/unminimized
+    // Check if window has been minimized/unminimized and update state
     if (SDL_GetWindowFlags(WINDOW) & SDL_WINDOW_MINIMIZED) {
         WINDOW_MINIMIZED = true;
     } else {
@@ -303,11 +310,12 @@ void update_window_properties() {
     SDL_GetWindowSize(WINDOW, (int *)&WINDOW_WIDTH, (int *)&WINDOW_HEIGHT);
 
     // In case the window size has changed update the scaler
-    // TODO: Only update the scaler if window size really changed?
-    initialize_scaler();
+    update_scaler();
 
     // If window size changed the camera position also changed
-    update_camera(PLAYER->get_x(), PLAYER->get_y());
+    update_camera(PLAYER->get_x() * GRID_SIZE, PLAYER->get_y() * GRID_SIZE);
+
+    // If window size changed the origin position
 }
 
 

@@ -2,6 +2,7 @@
 #include "Target.h"
 
 #include "SpriteHandler.h"
+#include "View.h"
 
 Target::Target(int x, int y) : DynamicObject(x, y, SPRITE_HANDLER->get("target")) {
     //
@@ -26,5 +27,5 @@ bool Target::push(int dx, int dy) {
 }
 
 bool Target::render() {
-    return sprites->render(x, y);
+    return sprites->render(x * GRID_SIZE, y * GRID_SIZE);
 }
