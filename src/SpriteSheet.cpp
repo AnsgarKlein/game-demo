@@ -528,35 +528,119 @@ bool SpriteSheet::render(int x, int y, const char *state_str) {
     }
 
     // Render
-    if (frames_c > 1) {
-        return INTERNAL_render_animated(get_texture(), x, y, state);
+    return renderINT(x, y, state);
+    // TODO:
+    //if (frames_c > 1) {
+    //    return INTERNAL_render_animated(get_texture(), x, y, state);
+    //} else {
+    //    return INTERNAL_render_static(get_texture(), x, y);
+    //}
+}
+
+bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) {
+    // Don't render if position is off camera
+    //    (Except do render the tile exactly next to the 
+    //    camera because it could partly be inside the camera)
+    if (x + GRID_SIZE < CAMERA_X || y + GRID_SIZE < CAMERA_Y) {
+        return false;
+    }
+    if (x + GRID_SIZE - CAMERA_X > CAMERA_WIDTH + GRID_SIZE) {
+        return false;
+    }
+    if (y + GRID_SIZE - CAMERA_Y > CAMERA_HEIGHT + GRID_SIZE) {
+        return false;
+    }
+
+    // Calculate position inside of camera
+    //
+    // Note:
+    // This position could actually be negative if a sprite begins off
+    // camera but is partly inside the camera.
+    // If we give this negative coordinate to SDL it seems to do the
+    // right thing. If this makes problems in the future we can cut out
+    // the necessary part of the texture and render it at coordinate 0.
+    int pos_x = x - CAMERA_X;
+    int pos_y = y - CAMERA_Y;
+
+
+    // TODO: Get all information at once with SpriteState::getAll()
+
+    // Get all frames in this sprite sheet
+    int frames_c = 0;
+    Point **frames_v = NULL;
+    state->get_frames(&frames_c, &frames_v);
+    if (frames_c == 0) {
+        //TODO:
+        printf("Did not get any frames to render\n");
+        return false;
+    }
+
+    // Check if we need to animate
+    bool animate = (frames_c == 1) ? false : true;
+
+    // Select the correct frame
+    int frame_i;
+    if (animate) {
+        frame_i = (GAME_TIME / state->get_frame_time()) % frames_c;
     } else {
-        return INTERNAL_render_static(get_texture(), x, y);
+        frame_i = 0;
     }
-}
+    Point *frame = frames_v[frame_i];
 
-#ifdef DEBUG_SIZE
-long SpriteSheet::recursive_size() {
-    long size = 0;
+    // Select the location of the correct frame in the sprite sheet
+    SDL_Rect clip;
+    clip.w = GRID_SIZE;
+    clip.h = GRID_SIZE;
+    clip.x = frame->x * GRID_SIZE;
+    clip.y = frame->y * GRID_SIZE;
 
-    // This
-    size += sizeof(*this);
+    // Check if we need to rotate 
+    int rotate = state->get_rotate()[frame_i];
+    int mirror_h = state->get_mirror_h()[frame_i];
+    int mirror_v = state->get_mirror_v()[frame_i];
 
-    // String
-    size += sizeof(*str) * strlen(str);
+    // Set viewport (where to render) to correct field in level
+    SDL_Rect view;
+    view.x = ORIGIN_X + (pos_x * SCALE);
+    view.y = ORIGIN_Y + (pos_y * SCALE);
+    view.w = GRID_SIZE * SCALE;
+    view.h = GRID_SIZE * SCALE;
 
-    // Texture
-    // (This does not include the actual texture data!)
-
-    // States
-    for (int i = 0; i < states_c; i++) {
-        size += sizeof(states_v[i]);
-        size += states_v[i]->recursive_size();
+    if (SDL_RenderSetViewport(WINRENDERER, &view) != 0) {
+        fprintf(stderr, "Could not set viewport for rendering!\n"
+                "SDL_Error: '%s'\n", SDL_GetError());
+        return false;
     }
 
-    printf("Size of SpriteSheet %s is %ld\n", get_str(), size);
+    // Render
+    int render_success;
+    if (rotate == 0 && !mirror_h && !mirror_v) {
+        render_success = SDL_RenderCopy(WINRENDERER,
+                                        (SDL_Texture *)texture,
+                                        &clip, NULL);
+    } else {
+        SDL_RendererFlip flip;
+        if (mirror_h) {
+            flip = SDL_FLIP_HORIZONTAL;
+        } else if (mirror_v) {
+            flip = SDL_FLIP_VERTICAL;
+        } else {
+            flip = SDL_FLIP_NONE;
+        }
+        render_success = SDL_RenderCopyEx(WINRENDERER,
+                                          (SDL_Texture*)texture,
+                                          &clip, NULL,
+                                          (float)rotate, NULL,
+                                          flip);
+    }
 
-    return size;
+
+    if (render_success != 0) {
+        fprintf(stderr, "Could not render texture!\n"
+                "SDL_Error: '%s'\n", SDL_GetError());
+        return false;
+    }
+
+    return true;
 }
-#endif
 

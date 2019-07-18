@@ -30,26 +30,61 @@ class SpriteState {
         bool *mirror_v;                 // Whether to flip specific frames vertically
         enum RenderType render_type;    // Whether to animate, permutate, ...
 
-        // TODO: Create private init function for SpriteState to aggregate constructors
+        // Private internal constructor
+        void init(const char *str,
+                  int frames_c,
+                  Point *frames_v[],
+                  int frame_time,
+                  int rotate[],
+                  bool mirror_h[],
+                  bool mirror_v[]);
     public:
         // Default
         SpriteState();
 
         // Single frame not at default position
-        SpriteState(const char *str, Point *frame);
+        SpriteState(const char *str,
+                    Point *frame);
 
-        // Multiple animated frames
-        SpriteState(const char *str, int frame_time, int frames_c, Point **frames_v);
+        // Multiple frames, animated
+        SpriteState(const char *str,
+                    int frames_c,
+                    Point *frames_v[],
+                    int frame_time);
+
+        // Single frame, rotated / mirrored
+        SpriteState(const char *str,
+                    Point *frame,
+                    int rotate[],
+                    bool mirror_h[],
+                    bool mirror_v[]);
+
+        // Multiple frames, rotated / mirrored
+        SpriteState(const char *str,
+                    int frames_c,
+                    Point *frames_v[],
+                    int rotate[],
+                    bool mirror_h[],
+                    bool mirror_v[]);
+
+        // All options
+        SpriteState(const char *str,
+                    int frames_c,
+                    Point *frames_v[],
+                    int frame_time,
+                    int rotate[],
+                    bool mirror_h[],
+                    bool mirror_v[]);
+
         virtual ~SpriteState();
 
         const char *get_str();
         bool get_overlay();
-        int get_frame_time();
         void get_frames(int *frames_c, Point ***frames_v);
-
-        #ifdef DEBUG_SIZE
-        long recursive_size();
-        #endif
+        int get_frame_time();
+        int *get_rotate();
+        bool *get_mirror_h();
+        bool *get_mirror_v();
 };
 
 #endif

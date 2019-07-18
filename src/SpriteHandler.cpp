@@ -24,13 +24,13 @@ SpriteHandler::SpriteHandler() {
             const char *str = "shining";
             int frame_time = 200;
             int frames_c = 5;
-            Point **frames_v = (Point **)malloc(sizeof(Point *) * 5);
+            Point **frames_v = (Point **)malloc(sizeof(Point *) * frames_c);
             frames_v[0] = new Point { 0, 1 };
             frames_v[1] = new Point { 1, 1 };
             frames_v[2] = new Point { 2, 1 };
             frames_v[3] = new Point { 3, 1 };
             frames_v[4] = new Point { 4, 1 };
-            SpriteState *state = new SpriteState(str, frame_time, frames_c, frames_v);
+            SpriteState *state = new SpriteState(str, frames_c, frames_v, frame_time);
             states[1] = state;
         }
         add("box", new SpriteSheet("sprites/box.png", 2, states));
@@ -50,17 +50,24 @@ SpriteHandler::SpriteHandler() {
 
     // Player
     {
-        SpriteState **states = (SpriteState **)malloc(sizeof(SpriteState *) * 3);
+        SpriteState **states = (SpriteState **)malloc(sizeof(SpriteState *) * 4);
         {
-            const char *str = "default";
+            const char *str = "facing_east";
             Point *frame = new Point { 0, 0 };
             SpriteState *state = new SpriteState(str, frame);
             states[0] = state;
         }
         {
-            const char *str = "facing_down";
-            Point *frame = new Point { 0, 1 };
-            SpriteState *state = new SpriteState(str, frame);
+            const char *str = "facing_west";
+            Point *frame = new Point { 0, 0 };
+            int *rotate = (int *)malloc(sizeof(int) * 1);
+            bool *mirror_h = (bool *)malloc(sizeof(bool) * 1);
+            bool *mirror_v = (bool *)malloc(sizeof(bool) * 1);
+            rotate[0] = 0;
+            mirror_h[0] = true;
+            mirror_v[0] = false;
+
+            SpriteState *state = new SpriteState(str, frame, rotate, mirror_h, mirror_v);
             states[1] = state;
         }
         {
@@ -69,15 +76,32 @@ SpriteHandler::SpriteHandler() {
             SpriteState *state = new SpriteState(str, frame);
             states[2] = state;
         }
-
-        add("player", new SpriteSheet("sprites/player.png", 3, states));
+        {
+            const char *str = "facing_south";
+            Point *frame = new Point { 0, 1 };
+            SpriteState *state = new SpriteState(str, frame);
+            states[3] = state;
+        }
+        add("player", new SpriteSheet("sprites/player.png", 4, states));
     }
 
     // Target
     {
-        //Animation *animation = new Animation(200, 5, true);
-        //add("target", new SpriteSheet("sprites/target.png", animation));
-        add("target", new SpriteSheet("sprites/target.png"));
+        SpriteState **states = (SpriteState **)malloc(sizeof(SpriteState *) * 1);
+        {
+            const char *str = "default";
+            int frame_time = 200;
+            int frames_c = 5;
+            Point **frames_v = (Point **)malloc(sizeof(Point *) * frames_c);
+            frames_v[0] = new Point { 0, 0 };
+            frames_v[1] = new Point { 1, 0 };
+            frames_v[2] = new Point { 2, 0 };
+            frames_v[3] = new Point { 3, 0 };
+            frames_v[4] = new Point { 4, 0 };
+            SpriteState *state = new SpriteState(str, frames_c, frames_v, frame_time);
+            states[0] = state;
+        }
+        add("target", new SpriteSheet("sprites/target.png", 1, states));
     }
 
     // Wall
@@ -115,31 +139,6 @@ void SpriteHandler::add(std::string key, SpriteSheet *sprite) {
     values.push_back(sprite);
 }
 
-#ifdef DEBUG_SIZE
-long SpriteHandler::recursive_size() {
-    long size = 0;
-
-    // Keys
-    for (size_t i = 0; i < keys.size(); i++) {
-        size += sizeof(keys[i]);
-    }
-
-    // Values
-    for (size_t i = 0; i < values.size(); i++) {
-        long value_size = 0;
-
-        value_size += sizeof(values[i]);
-        value_size += values[i]->recursive_size();
-
-        size += value_size;
-    }
-
-    printf("Size of SpriteHandler is %ld\n", size);
-    return size;
-}
-#endif
-
-
 void deinitialize_images() {
     delete SPRITE_HANDLER;
     SPRITE_HANDLER = NULL;
@@ -147,11 +146,6 @@ void deinitialize_images() {
 
 bool initialize_images() {
     SPRITE_HANDLER = new SpriteHandler();
-
-    #ifdef DEBUG_SIZE
-    SPRITE_HANDLER->recursive_size();
-    #endif
-
     return (SPRITE_HANDLER == NULL) ? false : true;
 }
 

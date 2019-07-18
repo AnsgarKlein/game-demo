@@ -10,13 +10,11 @@ Player *PLAYER = NULL;
 
 
 Player::Player(int x, int y, SpriteSheet *sprites) : GameCharacter(x, y, sprites) {
-    // Player gets initialized as facing to the right
-    this->player_facing = FACING_RIGHT;
+    //
 }
 
 Player::Player(int x, int y, std::string sprite_str) : GameCharacter(x, y, SPRITE_HANDLER->get(sprite_str)) {
-    // Player gets initialized as facing to the right
-    this->player_facing = FACING_RIGHT;
+    //
 }
 
 Player::~Player() {
@@ -39,7 +37,6 @@ Player::~Player() {
 MoveType Player::check_move(int dx, int dy) {
     // If map is solid we cannot move
     if (CURRENT_LEVEL->is_solid(x + dx, y + dy)) {
-        //printf("world is solid at target position -> move impossible\n");
         return MOVE_TYPE_IMPOSSIBLE;
     }
 
@@ -48,25 +45,20 @@ MoveType Player::check_move(int dx, int dy) {
 
     // If there is no other object, we can move alone
     if (objects->size() == 0) {
-        //printf("there is no other object -> move alone\n");
         return MOVE_TYPE_ALONE;
     }
 
     for (size_t i = 0; i < objects->size(); i++) {
         DynamicObject *obj = (*objects)[i];
 
-        //printf("object at target position: '%s'\n", obj->get_str());
-
         // If the other object can not be pushed we cannot move
         if (!obj->is_pushable(dx, dy)) {
-            //printf("other object is not pushable -> move impossible\n");
             return MOVE_TYPE_IMPOSSIBLE;
         }
 
     }
 
     // When all objects on target position can be pushed we can move with box
-    //printf("other object is pushable -> move with box\n");
     return MOVE_TYPE_WITHBOX;
 }
 
@@ -76,8 +68,28 @@ MoveType Player::check_move(int dx, int dy) {
  * Draws Sokoban at the current position onto the screen.
 **/
 bool Player::render() {
-    //return render_with_direction(this->sprites->get_texture(), x, y, player_facing);
-    return this->sprites->render(x * GRID_SIZE, y * GRID_SIZE);
+    switch (facing) {
+        case FACING_UP:
+            return this->sprites->render(x * GRID_SIZE, y * GRID_SIZE, "facing_north");
+            break;
+        case FACING_DOWN:
+            return this->sprites->render(x * GRID_SIZE, y * GRID_SIZE, "facing_south");
+            break;
+        case FACING_RIGHT:
+            return this->sprites->render(x * GRID_SIZE, y * GRID_SIZE, "facing_east");
+            break;
+        case FACING_LEFT:
+            return this->sprites->render(x * GRID_SIZE, y * GRID_SIZE, "facing_west");
+            break;
+    }
+}
+
+void Player::set_coordinates(int x, int y) {
+    this->x = x;
+    this->y = y;
+
+    // Update the camera position after player position changed
+    update_camera(x * GRID_SIZE, y * GRID_SIZE);
 }
 
 /**
@@ -92,49 +104,36 @@ bool Player::render() {
 void Player::move(int dx, int dy) {
     // Set direction Sokoban is facing
     if (dx > 0) {
-        player_facing = FACING_RIGHT;
+        facing = FACING_RIGHT;
     } else if (dx < 0) {
-        player_facing = FACING_LEFT;
+        facing = FACING_LEFT;
     } else if (dy > 0) {
-        player_facing = FACING_DOWN;
+        facing = FACING_DOWN;
     } else if (dy < 0) {
-        player_facing = FACING_UP;
+        facing = FACING_UP;
     }
 
-    // Check which type of move to do
-    enum MoveType type = check_move(dx, dy);
-
-    // TODO: Check this enum with switch case instead of ifs
-
-    // Check if move is possible at all
-    if (type == MOVE_TYPE_IMPOSSIBLE) {
-        return;
-    }
-
-    if (type == MOVE_TYPE_ALONE) {
-        x += dx;
-        y += dy;
-        update_camera(x * GRID_SIZE, y * GRID_SIZE);
-        return;
-    }
-
-    // Move the box first if necessary
-    if (type == MOVE_TYPE_WITHBOX) {
-        std::vector<DynamicObject *> *objects = CURRENT_LEVEL->get_objects(x + dx, y + dy);
-        for (size_t i = 0; i < objects->size(); i++) {
-            DynamicObject *obj = (*objects)[i];
-            if (!obj->push(dx, dy)) {
-                delete objects;
-                return;
+    // Check which type of move to do and move accordingly
+    switch(check_move(dx, dy)) {
+        case MOVE_TYPE_IMPOSSIBLE:
+            break;
+        case MOVE_TYPE_ALONE:
+            set_coordinates(x + dx, y + dy);
+            break;
+        case MOVE_TYPE_WITHBOX:
+            std::vector<DynamicObject *> *objects = CURRENT_LEVEL->get_objects(x + dx, y + dy);
+            for (size_t i = 0; i < objects->size(); i++) {
+                DynamicObject *obj = (*objects)[i];
+                if (!obj->push(dx, dy)) {
+                    delete objects;
+                    return;
+                }
             }
-        }
-        delete objects;
+            delete objects;
 
-        // If pushing has been successful set new sokoban coordinates
-        x += dx;
-        y += dy;
-        update_camera(x, y);
-        return;
+            // If pushing has been successful set new sokoban coordinates
+            set_coordinates(x + dx, y + dy);
+            break;
     }
 }
 

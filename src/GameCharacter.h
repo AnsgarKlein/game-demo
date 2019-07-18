@@ -7,7 +7,7 @@
 
 class GameCharacter : public DynamicObject {
     protected:
-        enum Direction direction;
+        enum Direction facing;
     public:
         GameCharacter(int x, int y, SpriteSheet *sprites);
         GameCharacter(int x, int y, SpriteSheet *sprites, Direction direction);

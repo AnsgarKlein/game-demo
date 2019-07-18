@@ -30,7 +30,6 @@ enum MoveType {
 
 class Player : public GameCharacter {
     private:
-        enum Direction player_facing;
         enum MoveType check_move(int dx, int dy);
         void move_box(int dx, int dy);
     public:
@@ -38,6 +37,7 @@ class Player : public GameCharacter {
         Player(int x, int y, std::string sprite_str);
         virtual ~Player();
 
+        void set_coordinates(int x, int y);
         void move(int dx, int dy);
         bool render();
 };

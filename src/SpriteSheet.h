@@ -29,10 +29,8 @@ class SpriteSheet {
 
         virtual bool render(int x, int y);
         virtual bool render(int x, int y, const char *state_str);
+        virtual bool renderINT(unsigned int x, unsigned int y, SpriteState *state);
 
-        #ifdef DEBUG_SIZE
-        long recursive_size();
-        #endif
 };
 
 #endif
