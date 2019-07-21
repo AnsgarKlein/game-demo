@@ -10,7 +10,7 @@
 class SpriteSheet {
     private:
         SDL_Texture *texture;
-        const char *str;
+        const std::string *str;
 
         int states_c;
         SpriteState **states_v;
@@ -18,9 +18,7 @@ class SpriteSheet {
         SpriteState *get_state(const char *state_str);
     public:
         SpriteSheet(std::string *path);
-        SpriteSheet(const char *path);
         SpriteSheet(std::string *path, int states_c, SpriteState **states_v);
-        SpriteSheet(const char *path, int states_c, SpriteState **states_v);
         virtual ~SpriteSheet();
 
         char *get_str();
@@ -32,5 +30,7 @@ class SpriteSheet {
         virtual bool renderINT(unsigned int x, unsigned int y, SpriteState *state);
 
 };
+
+SpriteSheet *SpriteSheet_from_file(std::string path);
 
 #endif

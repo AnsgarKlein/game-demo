@@ -1,7 +1,6 @@
 
 #include "SpriteHandler.h"
 
-
 SpriteHandler *SPRITE_HANDLER;
 
 
@@ -10,6 +9,7 @@ SpriteHandler::SpriteHandler() {
     // Read all sprite sheets
 
     // Box
+    SpriteSheet_from_file("sprites/box.json");
     {
         SpriteState **states = (SpriteState **)malloc(sizeof(SpriteState *) * 2);
         {
@@ -33,20 +33,20 @@ SpriteHandler::SpriteHandler() {
             SpriteState *state = new SpriteState(str, frames_c, frames_v, frame_time);
             states[1] = state;
         }
-        add("box", new SpriteSheet("sprites/box.png", 2, states));
+        add("box", new SpriteSheet(new std::string("sprites/box.png"), 2, states));
     }
 
     // Dirt
-    add("dirt", new SpriteSheet("sprites/dirt.png"));
+    add("dirt", new SpriteSheet(new std::string("sprites/dirt.png")));
 
     // Grass
-    add("grass", new SpriteSheet("sprites/grass.png"));
+    add("grass", new SpriteSheet(new std::string("sprites/grass.png")));
 
     // Sand
-    add("sand", new SpriteSheet("sprites/sand.png"));
+    add("sand", new SpriteSheet(new std::string("sprites/sand.png")));
 
     // Water
-    add("water", new SpriteSheet("sprites/water.png"));
+    add("water", new SpriteSheet(new std::string("sprites/water.png")));
 
     // Player
     {
@@ -82,7 +82,7 @@ SpriteHandler::SpriteHandler() {
             SpriteState *state = new SpriteState(str, frame);
             states[3] = state;
         }
-        add("player", new SpriteSheet("sprites/player.png", 4, states));
+        add("player", new SpriteSheet(new std::string("sprites/player.png"), 4, states));
     }
 
     // Target
@@ -101,17 +101,17 @@ SpriteHandler::SpriteHandler() {
             SpriteState *state = new SpriteState(str, frames_c, frames_v, frame_time);
             states[0] = state;
         }
-        add("target", new SpriteSheet("sprites/target.png", 1, states));
+        add("target", new SpriteSheet(new std::string("sprites/target.png"), 1, states));
     }
 
     // Wall
-    add("wall", new SpriteSheet("sprites/wall.png"));
+    add("wall", new SpriteSheet(new std::string("sprites/wall.png")));
 
     // Woodplanks
-    add("woodplanks", new SpriteSheet("sprites/woodplanks.png"));
+    add("woodplanks", new SpriteSheet(new std::string("sprites/woodplanks.png")));
 
     // Tree
-    add("tree", new SpriteSheet("sprites/tree.png"));
+    add("tree", new SpriteSheet(new std::string("sprites/tree.png")));
 }
 
 SpriteHandler::~SpriteHandler() {

@@ -128,6 +128,23 @@ SpriteState::~SpriteState() {
         free(frames_v);
         frames_v = NULL;
     }
+
+    //
+    if (rotate != NULL) {
+        free(rotate);
+    }
+    rotate = NULL;
+
+    if (mirror_h != NULL) {
+        free(mirror_h);
+    }
+    mirror_h = NULL;
+
+    if (mirror_v != NULL) {
+        free(mirror_v);
+    }
+    mirror_v = NULL;
+
 }
 
 const char *SpriteState::get_str() {

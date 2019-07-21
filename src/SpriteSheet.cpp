@@ -389,6 +389,8 @@ static bool INTERNAL_render_permutated(const SDL_Texture *text, int x, int y) {
 //}
 
 static bool loadIMG_from_file(SDL_Texture **texture, const char *filename) {
+    // TODO: Move file handling code to extra class
+
     // Cut off the file ending (last 3 characters)
     const char *ending = "";
     if (strlen(filename) > 3) {
@@ -420,18 +422,10 @@ static bool loadIMG_from_file(SDL_Texture **texture, const char *filename) {
     return true;
 }
 
-SpriteSheet::SpriteSheet(std::string *path) : SpriteSheet(path->c_str()) {
-    //
-}
-
-SpriteSheet::SpriteSheet(std::string *path, int states_c, SpriteState **states_v) : SpriteSheet(path->c_str(), states_c, states_v) {
-    //
-}
-
-SpriteSheet::SpriteSheet(const char *path) {
+SpriteSheet::SpriteSheet(std::string *path) {
     // Load the actual sprite sheet
     SDL_Texture *text;
-    loadIMG_from_file(&text, path);
+    loadIMG_from_file(&text, path->c_str());
     this->texture = text;
 
     // Save the path string as an identifier
@@ -443,10 +437,10 @@ SpriteSheet::SpriteSheet(const char *path) {
     this->states_v[0] = new SpriteState();
 }
 
-SpriteSheet::SpriteSheet(const char *path, int states_c, SpriteState **states_v) {
+SpriteSheet::SpriteSheet(std::string *path, int states_c, SpriteState **states_v) {
     // Load the actual sprite sheet
     SDL_Texture *text;
-    loadIMG_from_file(&text, path);
+    loadIMG_from_file(&text, path->c_str());
     this->texture = text;
 
     // Save the path string as an identifier
@@ -457,6 +451,12 @@ SpriteSheet::SpriteSheet(const char *path, int states_c, SpriteState **states_v)
 }
 
 SpriteSheet::~SpriteSheet() {
+    // Free texture data
+    SDL_DestroyTexture(texture);
+
+    // Free string
+    delete str;
+
     // Delete all states
     if (states_v != NULL) {
         for (int i = 0; i < states_c; i++) {
@@ -466,8 +466,6 @@ SpriteSheet::~SpriteSheet() {
         states_v = NULL;
     }
 
-    // Free texture data
-    SDL_DestroyTexture(texture);
 }
 
 char *SpriteSheet::get_str() {
@@ -642,5 +640,46 @@ bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) 
     }
 
     return true;
+}
+
+#include "FileReader.h"
+#include "JsonLexer.h"
+#include "JsonParser.h"
+
+SpriteSheet *SpriteSheet_from_file(std::string path) {
+    // Read file
+    std::string *content = read_file(path);
+    if (content == NULL) {
+        return NULL;
+    }
+
+    JsonBaseObject *base = parse_json(content);
+    if (base == NULL) {
+        return NULL;
+    }
+
+    if (typeid(*base) != typeid(JsonObject)) {
+        std::cerr << "Error when parsing SpriteSheet '" << path << "'." << std::endl;
+        std::cerr << "Top element in json should be object." << std::endl;
+
+        return NULL;
+    }
+
+    JsonObject *base_obj = (JsonObject *)base;
+
+    // Go through all children
+    for (auto pair : *(base_obj->get_children())) {
+        std::string *key = pair.first;
+        JsonBaseObject *val = pair.second;
+
+
+    }
+
+    // TODO: Create SpriteSheet from parsed JSON
+
+    // Free parsed result
+    delete base_obj;
+
+    return NULL;
 }
 
