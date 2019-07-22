@@ -5,23 +5,25 @@
 #include <SDL.h>
 
 #include <string>
+
 #include "SpriteState.h"
+#include "JsonParser.h"
 
 class SpriteSheet {
     private:
         SDL_Texture *texture;
-        const std::string *str;
+        std::string *id;
 
         int states_c;
         SpriteState **states_v;
 
-        SpriteState *get_state(const char *state_str);
+        SpriteState *get_state(std::string *state_str);
     public:
-        SpriteSheet(std::string *path);
-        SpriteSheet(std::string *path, int states_c, SpriteState **states_v);
+        SpriteSheet(std::string *id, std::string *path);
+        SpriteSheet(std::string *id, std::string *path, int states_c, SpriteState *states_v[]);
         virtual ~SpriteSheet();
 
-        char *get_str();
+        std::string *get_id();
 
         SDL_Texture *get_texture();
 
@@ -32,5 +34,6 @@ class SpriteSheet {
 };
 
 SpriteSheet *SpriteSheet_from_file(std::string path);
+SpriteSheet *SpriteSheet_from_json(JsonObject *obj);
 
 #endif

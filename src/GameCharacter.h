@@ -3,7 +3,13 @@
 #define GAME_CHARACTER_H
 
 #include "DynamicObject.h"
-#include "Direction.h"
+
+enum Direction {
+    FACING_RIGHT,
+    FACING_LEFT,
+    FACING_UP,
+    FACING_DOWN
+};
 
 class GameCharacter : public DynamicObject {
     protected:

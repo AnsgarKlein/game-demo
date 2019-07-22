@@ -5,10 +5,6 @@
 #include "Level.h"
 #include "Game.h"
 #include "Player.h"
-#include "Direction.h"
-
-// TODO: Remove asserts
-#include "assert.h"
 
 //Screen dimension
 //static unsigned int WINDOW_WIDTH  = 660;

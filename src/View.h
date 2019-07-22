@@ -6,7 +6,6 @@
 
 #include <SDL.h>
 
-
 extern SDL_Window   *WINDOW;
 extern SDL_Renderer *WINRENDERER;
 

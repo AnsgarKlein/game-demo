@@ -1,0 +1,27 @@
+{
+  "texture": "sprites/tree.png",
+  "id": "tree",
+  "states":
+  [
+    {
+      "id": "default",
+      "frame_time": 0,
+      "points":
+      [
+        { "x": 0, "y": 0 }
+      ],
+      "rotate":
+      [
+        0
+      ],
+      "mirror_h":
+      [
+        false
+      ],
+      "mirror_v":
+      [
+        false
+      ]
+    }
+  ]
+}

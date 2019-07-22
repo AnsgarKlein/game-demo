@@ -1,0 +1,13 @@
+{
+  ignore_sdl2_leak
+  Memcheck:Leak
+  ...
+  obj:*SDL*.so*
+}
+
+{
+  ignore_radeon_driver_leak
+  Memcheck:Leak
+  ...
+  obj:*radeonsi_dri.so*
+}

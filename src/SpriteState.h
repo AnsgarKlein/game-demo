@@ -4,10 +4,11 @@
 
 #include "Point.h"
 #include "RenderType.h"
+#include "JsonParser.h"
 
 class SpriteState {
     private:
-        const char *str;
+        std::string *str;
 
         // TODO: Overlay is not really used and needs to change
         // Will be needed for example:
@@ -21,7 +22,7 @@ class SpriteState {
         int frames_c;                   // How many frames are there in this state
 
         // TODO: Use arrays instead of pointers for frame properties
-        Point **frames_v;               // The offset(s) of the frame(s) in the sprite sheet
+        Point **offsets;                // The offset(s) of the frame(s) in the sprite sheet
 
         // TODO: Use array of frame times instead of just one int limiting flexibility
         int frame_time;                 // How long to show each frame (animation only)
@@ -31,9 +32,9 @@ class SpriteState {
         enum RenderType render_type;    // Whether to animate, permutate, ...
 
         // Private internal constructor
-        void init(const char *str,
+        void init(std::string *str,
                   int frames_c,
-                  Point *frames_v[],
+                  Point *offsets[],
                   int frame_time,
                   int rotate[],
                   bool mirror_h[],
@@ -43,34 +44,34 @@ class SpriteState {
         SpriteState();
 
         // Single frame not at default position
-        SpriteState(const char *str,
+        SpriteState(std::string *str,
                     Point *frame);
 
         // Multiple frames, animated
-        SpriteState(const char *str,
+        SpriteState(std::string *str,
                     int frames_c,
-                    Point *frames_v[],
+                    Point *offsets[],
                     int frame_time);
 
         // Single frame, rotated / mirrored
-        SpriteState(const char *str,
-                    Point *frame,
+        SpriteState(std::string *str,
+                    Point *offset,
                     int rotate[],
                     bool mirror_h[],
                     bool mirror_v[]);
 
         // Multiple frames, rotated / mirrored
-        SpriteState(const char *str,
+        SpriteState(std::string *str,
                     int frames_c,
-                    Point *frames_v[],
+                    Point *offsets[],
                     int rotate[],
                     bool mirror_h[],
                     bool mirror_v[]);
 
         // All options
-        SpriteState(const char *str,
+        SpriteState(std::string *str,
                     int frames_c,
-                    Point *frames_v[],
+                    Point *offsets[],
                     int frame_time,
                     int rotate[],
                     bool mirror_h[],
@@ -80,11 +81,13 @@ class SpriteState {
 
         const char *get_str();
         bool get_overlay();
-        void get_frames(int *frames_c, Point ***frames_v);
+        void get_frames(int *frames_c, Point ***offsets);
         int get_frame_time();
         int *get_rotate();
         bool *get_mirror_h();
         bool *get_mirror_v();
 };
+
+SpriteState *SpriteState_from_json(JsonObject *obj);
 
 #endif

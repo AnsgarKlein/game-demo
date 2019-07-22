@@ -3,140 +3,61 @@
 
 SpriteHandler *SPRITE_HANDLER;
 
-
-// TODO: Implement associative array like a sane person!
 SpriteHandler::SpriteHandler() {
+    const std::string all_sprites[] = {
+        "sprites/box.json",
+        "sprites/dirt.json",
+        "sprites/grass.json",
+        "sprites/sand.json",
+        "sprites/water.json",
+        "sprites/player.json",
+        "sprites/target.json",
+        "sprites/wall.json",
+        "sprites/woodplanks.json",
+        "sprites/tree.json",
+    };
+
     // Read all sprite sheets
-
-    // Box
-    SpriteSheet_from_file("sprites/box.json");
-    {
-        SpriteState **states = (SpriteState **)malloc(sizeof(SpriteState *) * 2);
-        {
-            // Default state
-            const char *str = "default";
-            Point *frame = new Point { 0, 0 };
-            SpriteState *state = new SpriteState(str, frame);
-            states[0] = state;
+    for (std::string str : all_sprites) {
+        SpriteSheet *sheet = SpriteSheet_from_file(str);
+        if (sheet != NULL) {
+            add(sheet->get_id(), sheet);
         }
-        {
-            // Shining (animated) state
-            const char *str = "shining";
-            int frame_time = 200;
-            int frames_c = 5;
-            Point **frames_v = (Point **)malloc(sizeof(Point *) * frames_c);
-            frames_v[0] = new Point { 0, 1 };
-            frames_v[1] = new Point { 1, 1 };
-            frames_v[2] = new Point { 2, 1 };
-            frames_v[3] = new Point { 3, 1 };
-            frames_v[4] = new Point { 4, 1 };
-            SpriteState *state = new SpriteState(str, frames_c, frames_v, frame_time);
-            states[1] = state;
-        }
-        add("box", new SpriteSheet(new std::string("sprites/box.png"), 2, states));
     }
-
-    // Dirt
-    add("dirt", new SpriteSheet(new std::string("sprites/dirt.png")));
-
-    // Grass
-    add("grass", new SpriteSheet(new std::string("sprites/grass.png")));
-
-    // Sand
-    add("sand", new SpriteSheet(new std::string("sprites/sand.png")));
-
-    // Water
-    add("water", new SpriteSheet(new std::string("sprites/water.png")));
-
-    // Player
-    {
-        SpriteState **states = (SpriteState **)malloc(sizeof(SpriteState *) * 4);
-        {
-            const char *str = "facing_east";
-            Point *frame = new Point { 0, 0 };
-            SpriteState *state = new SpriteState(str, frame);
-            states[0] = state;
-        }
-        {
-            const char *str = "facing_west";
-            Point *frame = new Point { 0, 0 };
-            int *rotate = (int *)malloc(sizeof(int) * 1);
-            bool *mirror_h = (bool *)malloc(sizeof(bool) * 1);
-            bool *mirror_v = (bool *)malloc(sizeof(bool) * 1);
-            rotate[0] = 0;
-            mirror_h[0] = true;
-            mirror_v[0] = false;
-
-            SpriteState *state = new SpriteState(str, frame, rotate, mirror_h, mirror_v);
-            states[1] = state;
-        }
-        {
-            const char *str = "facing_north";
-            Point *frame = new Point { 0, 2 };
-            SpriteState *state = new SpriteState(str, frame);
-            states[2] = state;
-        }
-        {
-            const char *str = "facing_south";
-            Point *frame = new Point { 0, 1 };
-            SpriteState *state = new SpriteState(str, frame);
-            states[3] = state;
-        }
-        add("player", new SpriteSheet(new std::string("sprites/player.png"), 4, states));
-    }
-
-    // Target
-    {
-        SpriteState **states = (SpriteState **)malloc(sizeof(SpriteState *) * 1);
-        {
-            const char *str = "default";
-            int frame_time = 200;
-            int frames_c = 5;
-            Point **frames_v = (Point **)malloc(sizeof(Point *) * frames_c);
-            frames_v[0] = new Point { 0, 0 };
-            frames_v[1] = new Point { 1, 0 };
-            frames_v[2] = new Point { 2, 0 };
-            frames_v[3] = new Point { 3, 0 };
-            frames_v[4] = new Point { 4, 0 };
-            SpriteState *state = new SpriteState(str, frames_c, frames_v, frame_time);
-            states[0] = state;
-        }
-        add("target", new SpriteSheet(new std::string("sprites/target.png"), 1, states));
-    }
-
-    // Wall
-    add("wall", new SpriteSheet(new std::string("sprites/wall.png")));
-
-    // Woodplanks
-    add("woodplanks", new SpriteSheet(new std::string("sprites/woodplanks.png")));
-
-    // Tree
-    add("tree", new SpriteSheet(new std::string("sprites/tree.png")));
 }
 
 SpriteHandler::~SpriteHandler() {
     // Destroy all sprite sheets
-    for (unsigned long i = 0; i < values.size(); i++) {
-        delete values.at(i);
+    for (auto pair : sprites) {
+        SpriteSheet *sprite = pair.second;
+        delete sprite;
+
+        // Dont delete the string because it is a pointer
+        // to the id in the SpriteSheet and will get freed
+        // with it.
     }
 }
 
 SpriteSheet *SpriteHandler::get(std::string key) {
+    // TODO: Implement associative array like a sane person!
+
     // Search key
-    for (unsigned long i = 0; i < keys.size(); i++) {
-        if (keys.at(i) == key) {
-            return values.at(i);
+    for (auto pair : sprites) {
+        std::string *str = pair.first;
+        SpriteSheet *sprite = pair.second;
+
+        if (key == *str) {
+            return sprite;
         }
     }
 
     // Key has not been found
-    fprintf(stderr, "Could not find sprite for key '%s'!\n", key.c_str());
     return NULL;
 }
 
-void SpriteHandler::add(std::string key, SpriteSheet *sprite) {
-    keys.push_back(key);
-    values.push_back(sprite);
+void SpriteHandler::add(std::string *key, SpriteSheet *sprite) {
+    std::pair<std::string *, SpriteSheet *> pair(key, sprite);
+    sprites.insert(pair);
 }
 
 void deinitialize_images() {

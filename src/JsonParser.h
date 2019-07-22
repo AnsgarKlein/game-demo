@@ -34,6 +34,9 @@ class JsonObject : public JsonBaseObject {
         void add(std::string *key, JsonBaseObject *value);
         std::unordered_map<std::string *, JsonBaseObject *> *get_children();
         std::string *as_string(int indent);
+        std::string *as_string() {
+            return as_string(0);
+        }
 };
 
 class JsonSimple : public JsonBaseObject {
@@ -48,6 +51,9 @@ class JsonSimple : public JsonBaseObject {
         JsonSimple(std::vector<JsonBaseObject *> *array);
         ~JsonSimple();
         std::string *as_string(int indent);
+        std::string *as_string() {
+            return as_string(0);
+        }
         JsonObjectType get_type();
         std::string *get_string();
         int *get_int();

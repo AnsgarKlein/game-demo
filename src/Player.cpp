@@ -45,6 +45,7 @@ MoveType Player::check_move(int dx, int dy) {
 
     // If there is no other object, we can move alone
     if (objects->size() == 0) {
+        delete objects;
         return MOVE_TYPE_ALONE;
     }
 
@@ -53,12 +54,14 @@ MoveType Player::check_move(int dx, int dy) {
 
         // If the other object can not be pushed we cannot move
         if (!obj->is_pushable(dx, dy)) {
+            delete objects;
             return MOVE_TYPE_IMPOSSIBLE;
         }
 
     }
 
     // When all objects on target position can be pushed we can move with box
+    delete objects;
     return MOVE_TYPE_WITHBOX;
 }
 

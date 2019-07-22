@@ -74,7 +74,6 @@ $(BUILDDIR)/$(SPRITEDIR)/%.png: $(SPRITEDIR)/%.png | $(BUILDDIR)/$(SPRITEDIR)
 	@cp $< $@
 
 $(TMPDIR)/%.o: $(SOURCEDIR)/%.cpp $(addprefix $(SOURCEDIR)/, $(HEADERS)) | $(TMPDIR)
-#$(TMPDIR)/%.o: $(SOURCEDIR)/%.cpp $(SOURCEDIR)/%.h			# this does not always work
 	@/bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [CC]      $(notdir $@)"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 

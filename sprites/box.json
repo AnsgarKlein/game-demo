@@ -1,42 +1,59 @@
 {
-  "texture": "box.png",
+  "texture": "sprites/box.png",
   "id": "box",
-  "states":[
+  "states":
+  [
     {
       "id": "default",
       "frame_time": 0,
-      "points": [
+      "points":
+      [
         { "x": 0, "y": 0 }
       ],
-      "rotate": [
+      "rotate":
+      [
         0
       ],
-      "mirror_h": [
+      "mirror_h":
+      [
         false
       ],
-      "mirror_v": [
+      "mirror_v":
+      [
         false
       ]
     },
     {
-      "id": "shiny",
+      "id": "shining",
       "frame_time": 200,
-      "points": [
+      "points":
+      [
         { "x": 0, "y": 1 },
         { "x": 1, "y": 1 },
-        { "x": 2, "y": 1 }
+        { "x": 2, "y": 1 },
+        { "x": 3, "y": 1 },
+        { "x": 4, "y": 1 }
       ],
-      "rotate": [
+      "rotate":
+      [
+        0,
+        0,
         0,
         0,
         0
       ],
-      "mirror_h": [
+      "mirror_h":
+      [
+        false,
+        false,
         false,
         false,
         false
       ],
-      "mirror_v": [
+      "mirror_v":
+      [
+        false,
+        false,
         false,
         false,
         false

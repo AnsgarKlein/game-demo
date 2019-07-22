@@ -6,7 +6,6 @@
 
 #include "GameCharacter.h"
 #include "SpriteSheet.h"
-#include "Direction.h"
 
 /**
  * @brief Types for moves of Sokoban
