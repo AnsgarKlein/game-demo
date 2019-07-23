@@ -408,8 +408,7 @@ SpriteSheet::SpriteSheet(std::string *id, std::string *path) {
 
     // Set default state
     this->states_c = 1;
-    this->states_v = new SpriteState*[1];
-    this->states_v[0] = new SpriteState();
+    this->states_v = new SpriteState*[1] { new SpriteState() };
 }
 
 SpriteSheet::SpriteSheet(std::string *id, std::string *path, int states_c, SpriteState *states_v[]) {
@@ -459,7 +458,7 @@ SpriteState *SpriteSheet::get_state(std::string *state_str) {
 
     // Go through all states and search correct one
     for (int i = 0; i < states_c; i++) {
-        if (states_v[i]->get_str() == *state_str) {
+        if (states_v[i]->get_id() == *state_str) {
             return states_v[i];
         }
     }
@@ -468,11 +467,11 @@ SpriteState *SpriteSheet::get_state(std::string *state_str) {
     return NULL;
 }
 
-bool SpriteSheet::render(int x, int y) {
+bool SpriteSheet::render(unsigned int x, unsigned int y) {
     return render(x, y, "default");
 }
 
-bool SpriteSheet::render(int x, int y, const char *state_str) {
+bool SpriteSheet::render(unsigned int x, unsigned int y, const char *state_str) {
     std::string str = std::string(state_str);
     SpriteState *state = get_state(&str);
 
@@ -487,21 +486,16 @@ bool SpriteSheet::render(int x, int y, const char *state_str) {
         }
     }
 
-    // Check how to render with settings from state
-    int frames_c = 0;
-    Point **frames_v = NULL;
-    state->get_frames(&frames_c, &frames_v);
-
-    if (frames_c == 0 || frames_v == NULL) {
-        fprintf(stderr, "Did not get valid Sprite frame data for rendering!\n");
-        return false;
-    }
-
     // Render
     return renderINT(x, y, state);
 }
 
 bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) {
+    if (state == NULL) {
+        fprintf(stderr, "Did not get valid Sprite frame data for rendering!\n");
+        return false;
+    }
+
     // Don't render if position is off camera
     //    (Except do render the tile exactly next to the 
     //    camera because it could partly be inside the camera)
@@ -530,28 +524,26 @@ bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) 
     // TODO: Get all information at once with SpriteState::getAll()
 
     // Get all frames in this sprite sheet
-    int frames_c = 0;
-    Point **frames_v = NULL;
-    state->get_frames(&frames_c, &frames_v);
-    if (frames_c == 0) {
+    int sprite_count = state->get_sprite_count();
+    Point **frames_v = state->get_offsets();
+    if (sprite_count == 0) {
         std::cerr << "Error when rendering sprite: Did not get any sprite to render" << std::endl;
         return false;
     }
 
-    // Check if we need to animate
-    bool animate = (frames_c == 1) ? false : true;
-
-    // Select the correct frame
+    // Select the correct sprite
     int frame_i;
-    if (animate) {
+    if (state->get_render_type() == RENDER_ANIMATED) {
         int frame_time = state->get_frame_time();
         if (frame_time == 0) {
             // Dont divide by zero when frame time
             // is not set (but should be set).
             frame_i = 0;
         } else {
-            frame_i = (GAME_TIME / state->get_frame_time()) % frames_c;
+            frame_i = (GAME_TIME / state->get_frame_time()) % sprite_count;
         }
+    } else if (state->get_render_type() == RENDER_PERMUTATED) {
+        frame_i = ((y / GRID_SIZE) * CURRENT_LEVEL->get_width() + (x / GRID_SIZE)) % sprite_count;
     } else {
         frame_i = 0;
     }
@@ -563,11 +555,6 @@ bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) 
     clip.h = GRID_SIZE;
     clip.x = frame->x * GRID_SIZE;
     clip.y = frame->y * GRID_SIZE;
-
-    // Check if we need to rotate 
-    int rotate = state->get_rotate()[frame_i];
-    int mirror_h = state->get_mirror_h()[frame_i];
-    int mirror_v = state->get_mirror_v()[frame_i];
 
     // Set viewport (where to render) to correct field in level
     SDL_Rect view;
@@ -582,14 +569,18 @@ bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) 
         return false;
     }
 
+    // Check if we need to rotate 
+    int rotate = state->get_rotate()[frame_i];
+    bool mirror_h = state->get_mirror_h()[frame_i];
+    bool mirror_v = state->get_mirror_v()[frame_i];
+
     // Render
     int render_success;
     if (rotate == 0 && !mirror_h && !mirror_v) {
-        render_success = SDL_RenderCopy(WINRENDERER,
-                                        (SDL_Texture *)texture,
-                                        &clip, NULL);
+        render_success = SDL_RenderCopy(WINRENDERER, texture, &clip, NULL);
     } else {
         SDL_RendererFlip flip;
+
         if (mirror_h) {
             flip = SDL_FLIP_HORIZONTAL;
         } else if (mirror_v) {
@@ -597,23 +588,22 @@ bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) 
         } else {
             flip = SDL_FLIP_NONE;
         }
-        render_success = SDL_RenderCopyEx(WINRENDERER,
-                                          (SDL_Texture*)texture,
-                                          &clip, NULL,
-                                          (float)rotate, NULL,
-                                          flip);
+
+        render_success = SDL_RenderCopyEx(WINRENDERER, texture, &clip, NULL,
+                                          (float)rotate, NULL, flip);
     }
 
-
     if (render_success != 0) {
-        fprintf(stderr, "Could not render texture!\n"
-                "SDL_Error: '%s'\n", SDL_GetError());
+        std::cerr << "Could not render texture!" << std::endl;
+        std::cerr << "SDL_Error: '" << SDL_GetError() << "'" << std::endl;
+
         return false;
     }
 
     return true;
 }
 
+// TODO: Move includes
 #include "FileReader.h"
 #include "JsonLexer.h"
 #include "JsonParser.h"
@@ -625,18 +615,27 @@ SpriteSheet *SpriteSheet_from_file(std::string path) {
         return NULL;
     }
 
-    // Parse file content
-    JsonBaseObject *top = parse_json(content);
-    if (top == NULL) {
+    // Lex file content to tokens
+    std::vector<JsonToken> *tokens = lex_json(content);
+    if (tokens == NULL) {
+        delete content;
         return NULL;
     }
     delete content;
+
+    // Parse 
+    JsonBaseObject *top = parse_json(tokens);
+    if (top == NULL) {
+        JsonTokens_free(tokens);
+        return NULL;
+    }
+    JsonTokens_free(tokens);
 
     // Check if top element of JSON is an object
     if (typeid(*top) != typeid(JsonObject)) {
         std::cerr << "Error when parsing SpriteSheet '" << path << "'." << std::endl;
         std::cerr << "Top element in JSON should be an object." << std::endl;
-
+        delete top;
         return NULL;
     }
     JsonObject *top_obj = (JsonObject *)top;
@@ -681,6 +680,7 @@ SpriteSheet *SpriteSheet_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value of type to be string - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
                 continue;
             }
 
@@ -699,6 +699,7 @@ SpriteSheet *SpriteSheet_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value of type to be array - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
                 continue;
             }
 
@@ -712,6 +713,7 @@ SpriteSheet *SpriteSheet_from_json(JsonObject *obj) {
                 if (typeid(*base_obj) != typeid(JsonObject)) {
                     std::cerr << "Error when parsing SpriteSheet." << std::endl;
                     std::cerr << "State should be of type object - ignoring state..." << std::endl;
+                    std::cerr << std::endl;
                     continue;
                 }
 
@@ -737,6 +739,7 @@ SpriteSheet *SpriteSheet_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value to of type string - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
                 continue;
             }
 
@@ -747,6 +750,7 @@ SpriteSheet *SpriteSheet_from_json(JsonObject *obj) {
         // Unknown key-value pair will get ignored
         std::cerr << "Error when parsing SpriteSheet." << std::endl;
         std::cerr << "Found unknown key '" << *key << "' - ignoring ..." << std::endl;
+        std::cerr << std::endl;
     }
     parsed_states_c = parsed_states_v->size();
 

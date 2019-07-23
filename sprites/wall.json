@@ -8,18 +8,38 @@
       "frame_time": 0,
       "points":
       [
-        { "x": 0, "y": 0 }
+        { "x": 0, "y": 0 },
+        { "x": 1, "y": 0 },
+        { "x": 2, "y": 0 },
+        { "x": 3, "y": 0 },
+        { "x": 4, "y": 0 },
+        { "x": 5, "y": 0 }
       ],
       "rotate":
       [
+        0,
+        0,
+        0,
+        0,
+        0,
         0
       ],
       "mirror_h":
       [
+        false,
+        false,
+        false,
+        false,
+        false,
         false
       ],
       "mirror_v":
       [
+        false,
+        false,
+        false,
+        false,
+        false,
         false
       ]
     }

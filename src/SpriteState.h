@@ -8,7 +8,7 @@
 
 class SpriteState {
     private:
-        std::string *str;
+        std::string *id;
 
         // TODO: Overlay is not really used and needs to change
         // Will be needed for example:
@@ -18,59 +18,41 @@ class SpriteState {
         // Probably needs to specify on which frame to overlay not just boolean
         bool overlay;
 
-        //
         int frames_c;                   // How many frames are there in this state
-
-        // TODO: Use arrays instead of pointers for frame properties
+        enum RenderType render_type;    // Whether to animate, permutate, ... these frames
         Point **offsets;                // The offset(s) of the frame(s) in the sprite sheet
 
         // TODO: Use array of frame times instead of just one int limiting flexibility
         int frame_time;                 // How long to show each frame (animation only)
+
         int *rotate;                    // Whether (and how) to rotate specific frames
         bool *mirror_h;                 // Whether to flip specific frames horizontally
         bool *mirror_v;                 // Whether to flip specific frames vertically
-        enum RenderType render_type;    // Whether to animate, permutate, ...
 
         // Private internal constructor
-        void init(std::string *str,
+        void init(std::string *id,
                   int frames_c,
+                  enum RenderType render_type,
                   Point *offsets[],
                   int frame_time,
                   int rotate[],
                   bool mirror_h[],
                   bool mirror_v[]);
     public:
-        // Default
+        // Default single sprite
         SpriteState();
 
-        // Single frame not at default position
-        SpriteState(std::string *str,
-                    Point *frame);
-
-        // Multiple frames, animated
-        SpriteState(std::string *str,
-                    int frames_c,
-                    Point *offsets[],
-                    int frame_time);
-
-        // Single frame, rotated / mirrored
-        SpriteState(std::string *str,
+        // Single sprite
+        SpriteState(std::string *id,
                     Point *offset,
-                    int rotate[],
-                    bool mirror_h[],
-                    bool mirror_v[]);
+                    int rotate,
+                    bool mirror_h,
+                    bool mirror_v);
 
-        // Multiple frames, rotated / mirrored
-        SpriteState(std::string *str,
+        // Multiple sprites
+        SpriteState(std::string *id,
                     int frames_c,
-                    Point *offsets[],
-                    int rotate[],
-                    bool mirror_h[],
-                    bool mirror_v[]);
-
-        // All options
-        SpriteState(std::string *str,
-                    int frames_c,
+                    enum RenderType render_type,
                     Point *offsets[],
                     int frame_time,
                     int rotate[],
@@ -79,10 +61,12 @@ class SpriteState {
 
         virtual ~SpriteState();
 
-        const char *get_str();
+        const char *get_id();
         bool get_overlay();
-        void get_frames(int *frames_c, Point ***offsets);
+        enum RenderType get_render_type();
+        Point **get_offsets();
         int get_frame_time();
+        int get_sprite_count();
         int *get_rotate();
         bool *get_mirror_h();
         bool *get_mirror_v();

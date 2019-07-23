@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void SpriteState::init(std::string *str,
+void SpriteState::init(std::string *id,
                        int frames_c,
+                       enum RenderType render_type,
                        Point *offsets[],
                        int frame_time,
                        int rotate[],
@@ -15,11 +16,11 @@ void SpriteState::init(std::string *str,
     // TODO: Remove or adjust overlay rendering code
     this->overlay = false;
 
-    // String
-    this->str = (str != NULL) ? str : new std::string("default");
+    this->id = (id != NULL) ? id : new std::string("default");
 
-    //
     this->frames_c = frames_c;
+
+    this->render_type = render_type;
 
     // Points
     if (offsets != NULL) {
@@ -67,58 +68,40 @@ void SpriteState::init(std::string *str,
 }
 
 SpriteState::SpriteState() {
-    init(NULL, 1, NULL, 0, NULL, NULL, NULL);
+    init(NULL, 1, RENDER_STATIC, NULL, 0, NULL, NULL, NULL);
 }
 
-SpriteState::SpriteState(std::string *str, Point *offset) {
-    Point **offsets = new Point*[1] { offset };
-    init(str, 1, offsets, 0, NULL, NULL, NULL);
-}
-
-SpriteState::SpriteState(std::string *str,
-                         int frames_c,
-                         Point *offsets[],
-                         int frame_time) {
-
-    init(str, frames_c, offsets, frame_time, NULL, NULL, NULL);
-}
-
-SpriteState::SpriteState(std::string *str,
+SpriteState::SpriteState(std::string *id,
                          Point *offset,
-                         int rotate[],
-                         bool mirror_h[],
-                         bool mirror_v[]) {
+                         int rotate,
+                         bool mirror_h,
+                         bool mirror_v) {
 
     Point **offsets = new Point*[1] { offset };
-    init(str, 1, offsets, 0, rotate, mirror_h, mirror_v);
+    int *rotates = new int[1] { rotate };
+    bool *mirror_hs = new bool[1] { mirror_h };
+    bool *mirror_vs = new bool[1] { mirror_v };
+
+    init(id, 1, RENDER_STATIC, offsets, frame_time, rotates, mirror_hs, mirror_vs);
 }
 
-SpriteState::SpriteState(std::string *str,
-                         int frames_c,
-                         Point *offsets[],
-                         int rotate[],
-                         bool mirror_h[],
-                         bool mirror_v[]) {
-
-    init(str, frames_c, offsets, 0, rotate, mirror_h, mirror_v);
-}
-
-SpriteState::SpriteState(std::string *str,
+SpriteState::SpriteState(std::string *id,
                         int frames_c,
+                         enum RenderType render_type,
                         Point *offsets[],
                         int frame_time,
                         int rotate[],
                         bool mirror_h[],
                         bool mirror_v[]) {
 
-    init(str, frames_c, offsets, frame_time, rotate, mirror_h, mirror_v);
+    init(id, frames_c, render_type, offsets, frame_time, rotate, mirror_h, mirror_v);
 }
 
 SpriteState::~SpriteState() {
     // Free string
-    if (str != NULL) {
-        delete str;
-        str = NULL;
+    if (id != NULL) {
+        delete id;
+        id = NULL;
     }
 
     // Free all offset information
@@ -147,52 +130,63 @@ SpriteState::~SpriteState() {
     }
 }
 
-const char *SpriteState::get_str() {
-    return str->c_str();
+const char *SpriteState::get_id() {
+    return id->c_str();
 }
 
 bool SpriteState::get_overlay() {
     return overlay;
 }
 
-int SpriteState::get_frame_time() {
-    return this->frame_time;
+enum RenderType SpriteState::get_render_type() {
+    return render_type;
 }
 
-void SpriteState::get_frames(int *frames_c, Point ***offsets) {
-    *frames_c = this->frames_c;
-    *offsets = this->offsets;
+int SpriteState::get_frame_time() {
+    return frame_time;
+}
+
+int SpriteState::get_sprite_count() {
+    return frames_c;
+}
+
+Point **SpriteState::get_offsets() {
+    return offsets;
 }
 
 int *SpriteState::get_rotate() {
-    return this->rotate;
+    return rotate;
 }
 
 bool *SpriteState::get_mirror_h() {
-    return this->mirror_h;
+    return mirror_h;
 }
 
 bool *SpriteState::get_mirror_v() {
-    return this->mirror_v;
+    return mirror_v;
 }
 
 SpriteState *SpriteState_from_json(JsonObject *obj) {
     // Constants for parsing
-    const std::string JSON_KEY_ID           = "id";
-    const std::string JSON_KEY_FRAME_TIME   = "frame_time";
-    const std::string JSON_KEY_POINTS       = "points";
-    const std::string JSON_KEY_ROTATE       = "rotate";
-    const std::string JSON_KEY_MIRROR_H     = "mirror_h";
-    const std::string JSON_KEY_MIRROR_V     = "mirror_v";
+    const std::string JSON_KEY_ID                    = "id";
+    const std::string JSON_KEY_FRAME_TIME            = "frame_time";
+    const std::string JSON_KEY_RENDER_TYPE           = "render_type";
+    const std::string JSON_KEY_RENDER_TYPE_ANIMATE   = "animate";
+    const std::string JSON_KEY_RENDER_TYPE_PERMUTATE = "permutate";
+    const std::string JSON_KEY_OFFSETS               = "points";
+    const std::string JSON_KEY_ROTATE                = "rotate";
+    const std::string JSON_KEY_MIRROR_H              = "mirror_h";
+    const std::string JSON_KEY_MIRROR_V              = "mirror_v";
 
     // Variables fo parsed values
-    std::string          *parsed_id         = NULL;
-    int                   parsed_frame_time = 0;
-    int                   parsed_frames     = 0;
-    std::vector<Point *> *parsed_offsets    = NULL;
-    std::vector<int>     *parsed_rotates    = NULL;
-    std::vector<bool>    *parsed_mirror_h   = NULL;
-    std::vector<bool>    *parsed_mirror_v   = NULL;
+    std::string          *parsed_id          = NULL;
+    int                   parsed_frame_time  = 0;
+    enum RenderType       parsed_render_type = RENDER_STATIC;
+    int                   parsed_frames      = 0;
+    std::vector<Point *> *parsed_offsets     = NULL;
+    std::vector<int>     *parsed_rotates     = NULL;
+    std::vector<bool>    *parsed_mirror_h    = NULL;
+    std::vector<bool>    *parsed_mirror_v    = NULL;
 
 
     // Go through all children of this object and parse them
@@ -216,6 +210,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value of type to be string - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
                 continue;
             }
 
@@ -234,6 +229,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value of type to be integer - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
                 continue;
             }
 
@@ -241,8 +237,39 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
             continue;
         }
 
+        // Parse render type
+        if (*key == JSON_KEY_RENDER_TYPE) {
+            JsonSimple *render_type = (JsonSimple *)val;
+
+            if (typeid(*val) != typeid(JsonSimple) ||
+                render_type->get_type() != JSON_OBJECT_STRING ||
+                render_type->get_string() == NULL) {
+
+                std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
+                std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
+                std::cerr << "Expected value of type to be string - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
+                continue;
+            }
+
+            std::string *render_type_str = render_type->get_string();
+
+            if (*render_type_str == JSON_KEY_RENDER_TYPE_ANIMATE) {
+                parsed_render_type = RENDER_ANIMATED;
+            } else if (*render_type_str == JSON_KEY_RENDER_TYPE_PERMUTATE) {
+                parsed_render_type = RENDER_PERMUTATED;
+            } else {
+                std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
+                std::cerr << "Key '" << *key << "' has unknown value ";
+                std::cerr << "'" << *render_type_str << "' - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
+            }
+
+            continue;
+        }
+
         // Parse frame offsets key-value pair
-        if (*key == JSON_KEY_POINTS) {
+        if (*key == JSON_KEY_OFFSETS) {
             JsonSimple *offsets = (JsonSimple *)val;
 
             if (typeid(*val) != typeid(JsonSimple) ||
@@ -252,6 +279,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value of type to be array - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
                 continue;
             }
 
@@ -265,6 +293,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                 if (typeid(*offset_baseobj) != typeid(JsonObject)) {
                     std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                     std::cerr << "Value of key '" << *key << "' should be array of objects" << std::endl;
+                    std::cerr << std::endl;
                     continue;
                 }
                 JsonObject *offset_obj = (JsonObject *)offset_baseobj;
@@ -285,6 +314,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
 
                         std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                         std::cerr << "Value of key '" << *key << "' should be array of objects" << std::endl;
+                        std::cerr << std::endl;
                         continue;
                     }
 
@@ -303,6 +333,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                 if (!found_x || !found_y) {
                     std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                     std::cerr << "Offset of state is malformed (missing x/y coordinate)." << std::endl;
+                    std::cerr << std::endl;
                     continue;
                 }
 
@@ -325,6 +356,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value of type to be array - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
                 continue;
             }
 
@@ -343,6 +375,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                     std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                     std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                     std::cerr << "Expected value of type to be array of integers..." << std::endl;
+                    std::cerr << std::endl;
                     continue;
                 }
 
@@ -366,6 +399,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value of type to be array - ignoring pair..." << std::endl;
+                std::cerr << std::endl;
                 continue;
             }
 
@@ -384,13 +418,12 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                     std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                     std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                     std::cerr << "Expected value of type to be array of booleans..." << std::endl;
+                    std::cerr << std::endl;
                     continue;
                 }
 
                 // Parse mirror option
-                // TODO: Change copy code
-                bool copy = *(mirrorh_obj->get_bool());
-                parsed_mirror_h->push_back(copy);
+                parsed_mirror_h->push_back(*mirrorh_obj->get_bool());
             }
 
             continue;
@@ -407,6 +440,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                 std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                 std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                 std::cerr << "Expected value of type to be array - ignoring pair..." << std::endl;
+            std::cerr << std::endl;
                 continue;
             }
 
@@ -425,17 +459,22 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                     std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
                     std::cerr << "Key '" << *key << "' has unknown value." << std::endl;
                     std::cerr << "Expected value of type to be array of booleans..." << std::endl;
+                    std::cerr << std::endl;
                     continue;
                 }
 
                 // Parse mirror option
-                // TODO: Change copy code
-                bool copy = *(mirrorv_obj->get_bool());
-                parsed_mirror_v->push_back(copy);
+                parsed_mirror_v->push_back(*mirrorv_obj->get_bool());
             }
 
             continue;
         }
+
+
+        // Unknown key found
+        std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
+        std::cerr << "Found unknown key '" << *key << "' - ignoring ..." << std::endl;
+        std::cerr << std::endl;
     }
     if (parsed_offsets != NULL) {
         parsed_frames = parsed_offsets->size();
@@ -454,7 +493,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
         std::cerr << "Necessary are:" << std::endl;
         std::cerr << "  - " << JSON_KEY_ID << std::endl;
         std::cerr << "  - " << JSON_KEY_FRAME_TIME << std::endl;
-        std::cerr << "  - " << JSON_KEY_POINTS << std::endl;
+        std::cerr << "  - " << JSON_KEY_OFFSETS << std::endl;
         std::cerr << "  - " << JSON_KEY_ROTATE << std::endl;
         std::cerr << "  - " << JSON_KEY_MIRROR_H << std::endl;
         std::cerr << "  - " << JSON_KEY_MIRROR_V << std::endl;
@@ -522,6 +561,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
     // Create new SpriteState from parsed results
     return new SpriteState(parsed_id,
                            parsed_frames,
+                           parsed_render_type,
                            parsed_offsets_arr,
                            parsed_frame_time,
                            parsed_rotates_arr,
@@ -529,3 +569,4 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                            parsed_mirror_v_arr);
 
 }
+

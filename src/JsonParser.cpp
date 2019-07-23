@@ -433,6 +433,11 @@ static bool parse_all(JsonToken **tokens, JsonToken *last, JsonBaseObject **out)
 }
 
 JsonBaseObject *parse_json(JsonToken *tokens, JsonToken *last) {
+    if (tokens == NULL || last == NULL) {
+        std::cerr << "Error when parsing JSON: No tokens given" << std::endl;
+        return NULL;
+    }
+
     JsonBaseObject *item = NULL;
     parse_all(&tokens, last, &item);
 
@@ -451,18 +456,33 @@ JsonBaseObject *parse_json(JsonToken *tokens, JsonToken *last) {
     return item;
 }
 
-JsonBaseObject *parse_json(std::string *content) {
-    // Lex content first
-    std::vector<JsonToken> *tokens = lex_json(content);
+JsonBaseObject *parse_json(std::vector<JsonToken> *tokens) {
     if (tokens == NULL) {
+        std::cerr << "Error when parsing JSON: No tokens given" << std::endl;
         return NULL;
     }
 
-    // Parse
+    // Parse tokens
     JsonToken last = (*tokens)[tokens->size()];
-    JsonBaseObject *result = parse_json(tokens->data(), &last);
-    JsonTokens_free(tokens);
+    return parse_json(tokens->data(), &last);
+}
 
+JsonBaseObject *parse_json(std::string *content) {
+    if (content == NULL) {
+        std::cerr << "Error when parsing JSON: Given JSON is empty" << std::endl;
+        return NULL;
+    }
+
+    // Lex content first
+    std::vector<JsonToken> *tokens = lex_json(content);
+    if (tokens == NULL) {
+        JsonTokens_free(tokens);
+        return NULL;
+    }
+
+    // Parse tokens
+    JsonBaseObject *result = parse_json(tokens);
+    JsonTokens_free(tokens);
     return result;
 }
 

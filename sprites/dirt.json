@@ -5,22 +5,51 @@
   [
     {
       "id": "default",
-      "frame_time": 0,
+      "render_type": "permutate",
+      "frame_time": 400,
       "points":
       [
+        { "x": 0, "y": 0 },
+        { "x": 0, "y": 0 },
+        { "x": 0, "y": 0 },
+        { "x": 0, "y": 0 },
+        { "x": 0, "y": 0 },
+        { "x": 0, "y": 0 },
+        { "x": 0, "y": 0 },
         { "x": 0, "y": 0 }
       ],
       "rotate":
       [
-        0
+        0,
+        90,
+        180,
+        270,
+        0,
+        0,
+        90,
+        90
       ],
       "mirror_h":
       [
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true,
         false
       ],
       "mirror_v":
       [
-        false
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true
       ]
     }
   ]

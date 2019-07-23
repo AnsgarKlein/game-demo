@@ -51,8 +51,24 @@ SpriteSheet *SpriteHandler::get(std::string key) {
         }
     }
 
-    // Key has not been found
-    return NULL;
+
+    //std::unordered_map<std::string *, SpriteSheet *>::const_iterator got;
+    //got = sprites.find(key);
+    //if (got == sprites.end()) {
+    //    return NULL;
+    //} else {
+    //    std::cout << got->first << " is " << got->second;
+    //    return got->second;
+    //}
+
+    //// Key has not been found
+    //return NULL;
+
+
+    //std::string *str = new std::string(key);
+    //SpriteSheet *sheet = sprites.at(str);
+    //delete str;
+    //return sheet;
 }
 
 void SpriteHandler::add(std::string *key, SpriteSheet *sprite) {

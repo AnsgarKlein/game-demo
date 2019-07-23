@@ -5,21 +5,26 @@
   [
     {
       "id": "default",
-      "frame_time": 0,
+      "render_type": "animate",
+      "frame_time": 200,
       "points":
       [
-        { "x": 0, "y": 0 }
+        { "x": 0, "y": 0 },
+        { "x": 1, "y": 0 }
       ],
       "rotate":
       [
+        0,
         0
       ],
       "mirror_h":
       [
+        false,
         false
       ],
       "mirror_v":
       [
+        false,
         false
       ]
     }

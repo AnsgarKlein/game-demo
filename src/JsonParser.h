@@ -62,7 +62,7 @@ class JsonSimple : public JsonBaseObject {
 };
 
 JsonBaseObject *parse_json(JsonToken *tokens, JsonToken *last);
-
+JsonBaseObject *parse_json(std::vector<JsonToken> *tokens);
 JsonBaseObject *parse_json(std::string *content);
 
 #endif

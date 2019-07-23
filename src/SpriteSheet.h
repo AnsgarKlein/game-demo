@@ -27,8 +27,8 @@ class SpriteSheet {
 
         SDL_Texture *get_texture();
 
-        virtual bool render(int x, int y);
-        virtual bool render(int x, int y, const char *state_str);
+        virtual bool render(unsigned int x, unsigned int y);
+        virtual bool render(unsigned int x, unsigned int y, const char *state_str);
         virtual bool renderINT(unsigned int x, unsigned int y, SpriteState *state);
 
 };

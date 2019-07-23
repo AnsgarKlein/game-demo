@@ -5,7 +5,7 @@ SOURCEDIR  :=  src
 TMPDIR     :=  tmp
 BUILDDIR   :=  build
 SCRIPTDIR  :=  scripts
-SPRITEDIR  :=  sprites
+SPRITESDIR :=  sprites
 DOCDIR     :=  doc/doc
 
 DOCCONFIG  :=  doc/Doxygen.config
@@ -13,15 +13,16 @@ DOCCONFIG  :=  doc/Doxygen.config
 TARGET     :=  demo
 PRINTSCRIPT := print.sh
 
-#IMAGES    :=  dirt.png
-#IMAGES    +=  sand.png
-#IMAGES    +=  box.png
-#IMAGES    +=  player.png
-#IMAGES    +=  target.png
-#IMAGES    +=  wall.png
-#IMAGES    +=  woodplanks.png
-#IMAGES    +=  tree.png
-IMAGES     := $(notdir $(wildcard $(SPRITEDIR)/*.png))
+#SPRITES   :=  dirt.png
+#SPRITES   +=  sand.png
+#SPRITES   +=  box.png
+#SPRITES   +=  player.png
+#SPRITES   +=  target.png
+#SPRITES   +=  wall.png
+#SPRITES   +=  woodplanks.png
+#SPRITES   +=  tree.png
+SPRITES    := $(notdir $(wildcard $(SPRITESDIR)/*.png))
+SPRITES    += $(notdir $(wildcard $(SPRITESDIR)/*.json))
 
 SOURCES    :=  $(notdir $(wildcard $(SOURCEDIR)/*.cpp))
 
@@ -47,7 +48,7 @@ LDFLAGS    +=  $(shell pkg-config --libs $(LIBRARIES))
 all: $(BUILDDIR)/$(TARGET)
 all: $(addprefix $(SOURCEDIR)/, $(SOURCES))
 all: $(addprefix $(SOURCEDIR)/, $(HEADERS))
-all: $(addprefix $(BUILDDIR)/sprites/, $(IMAGES))
+all: $(addprefix $(BUILDDIR)/sprites/, $(SPRITES))
 	@#
 
 debug: CXXFLAGS += -g
@@ -69,7 +70,7 @@ $(BUILDDIR)/$(TARGET): $(addprefix $(TMPDIR)/, $(OBJECTS)) | $(BUILDDIR)
 	@/bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [LD]      $(notdir $@)"
 	@$(CXX) $(LDFLAGS) $^ -o $@
 
-$(BUILDDIR)/$(SPRITEDIR)/%.png: $(SPRITEDIR)/%.png | $(BUILDDIR)/$(SPRITEDIR)
+$(BUILDDIR)/$(SPRITESDIR)/%.png: $(SPRITESDIR)/%.png | $(BUILDDIR)/$(SPRITESDIR)
 	@/bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [GEN]     $(notdir $@)"
 	@cp $< $@
 
@@ -77,8 +78,8 @@ $(TMPDIR)/%.o: $(SOURCEDIR)/%.cpp $(addprefix $(SOURCEDIR)/, $(HEADERS)) | $(TMP
 	@/bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [CC]      $(notdir $@)"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BUILDDIR)/$(SPRITEDIR): | $(BUILDDIR)
-	@mkdir -p $(BUILDDIR)/$(SPRITEDIR)
+$(BUILDDIR)/$(SPRITESDIR): | $(BUILDDIR)
+	@mkdir -p $(BUILDDIR)/$(SPRITESDIR)
 
 $(BUILDDIR):
 	@mkdir -p $(BUILDDIR)
@@ -94,7 +95,7 @@ clean:
 	fi
 
 	@# Remove sprites
-	@for img in $(wildcard $(BUILDDIR)/$(SPRITEDIR)/*.png); do \
+	@for img in $(wildcard $(BUILDDIR)/$(SPRITESDIR)/*.png); do \
 	  /bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [CLEAN]   $$img" ; \
 	  rm -f $$img ; \
 	done
