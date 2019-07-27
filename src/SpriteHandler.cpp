@@ -50,6 +50,7 @@ SpriteSheet *SpriteHandler::get(std::string key) {
             return sprite;
         }
     }
+    return NULL;
 
 
     //std::unordered_map<std::string *, SpriteSheet *>::const_iterator got;

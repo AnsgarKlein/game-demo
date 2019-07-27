@@ -74,6 +74,10 @@ $(BUILDDIR)/$(SPRITESDIR)/%.png: $(SPRITESDIR)/%.png | $(BUILDDIR)/$(SPRITESDIR)
 	@/bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [GEN]     $(notdir $@)"
 	@cp $< $@
 
+$(BUILDDIR)/$(SPRITESDIR)/%.json: $(SPRITESDIR)/%.json | $(BUILDDIR)/$(SPRITESDIR)
+	@/bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [GEN]     $(notdir $@)"
+	@cp $< $@
+
 $(TMPDIR)/%.o: $(SOURCEDIR)/%.cpp $(addprefix $(SOURCEDIR)/, $(HEADERS)) | $(TMPDIR)
 	@/bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [CC]      $(notdir $@)"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@

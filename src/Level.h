@@ -34,7 +34,7 @@ class Level {
         bool render();
 };
 
-Level* Level_from_file(const char *filepath);
+//Level* Level_from_file(const char *filepath);
 Level* Level_from_buffer(const char *buf, long len);
 
 extern const char *DEFAULT_LEVEL;
@@ -47,10 +47,12 @@ extern const char BOARD_WALL;
 
 extern Level *CURRENT_LEVEL;
 
-bool set_level_from_file(const char *filepath);
+//bool set_level_from_file(const char *filepath);
 
 bool set_level_from_buffer(const char *buf, long len);
 
+Level *Level_from_file(std::string path);
 
+Level *Level_from_json(JsonObject *obj);
 
 #endif

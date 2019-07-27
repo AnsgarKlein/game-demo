@@ -4,8 +4,10 @@
 #include "View.h"
 #include "Game.h"
 #include "Level.h"
+#include "FileReader.h"
+#include "JsonLexer.h"
+#include "JsonParser.h"
 
-#include "View.h"
 
 //static bool INTERNAL_render_static(const SDL_Texture *text, unsigned int x, unsigned int y) {
 //    // Dont clip image
@@ -603,11 +605,6 @@ bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) 
     return true;
 }
 
-// TODO: Move includes
-#include "FileReader.h"
-#include "JsonLexer.h"
-#include "JsonParser.h"
-
 SpriteSheet *SpriteSheet_from_file(std::string path) {
     // Read file
     std::string *content = read_file(path);
@@ -648,26 +645,21 @@ SpriteSheet *SpriteSheet_from_file(std::string path) {
 
 SpriteSheet *SpriteSheet_from_json(JsonObject *obj) {
     // Constants for parsing
-    const std::string JSON_KEY_TEXTURE = "texture";
     const std::string JSON_KEY_ID      = "id";
+    const std::string JSON_KEY_TEXTURE = "texture";
     const std::string JSON_KEY_STATES  = "states";
 
     // Variables fo parsed values
-    std::string                *parsed_texture  = NULL;
     std::string                *parsed_id       = NULL;
+    std::string                *parsed_texture  = NULL;
     int                         parsed_states_c = 0;
     std::vector<SpriteState *> *parsed_states_v = NULL;
 
 
     // Go through all children of this object and parse them
-    bool parsing_error = false;
     for (auto pair : *(obj->get_children())) {
         std::string *key = pair.first;
         JsonBaseObject *val = pair.second;
-
-        if (parsing_error) {
-            break;
-        }
 
         // Parse texture key-value pair
         if (*key == JSON_KEY_TEXTURE) {
@@ -764,14 +756,11 @@ SpriteSheet *SpriteSheet_from_json(JsonObject *obj) {
         std::cerr << "Error when parsing SpriteSheet." << std::endl;
         std::cerr << "Did not find all necessary key-value pairs." << std::endl;
         std::cerr << "Necessary are:" << std::endl;
-        std::cerr << "  - " << JSON_KEY_TEXTURE << std::endl;
         std::cerr << "  - " << JSON_KEY_ID << std::endl;
+        std::cerr << "  - " << JSON_KEY_TEXTURE << std::endl;
         std::cerr << "  - " << JSON_KEY_STATES << std::endl;
+        std::cerr << std::endl;
 
-        parsing_error = true;
-    }
-
-    if (parsing_error) {
         if (parsed_texture != NULL) {
             delete parsed_texture;
         }

@@ -190,14 +190,9 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
 
 
     // Go through all children of this object and parse them
-    bool parsing_error = false;
     for (auto pair : *(obj->get_children())) {
         std::string *key = pair.first;
         JsonBaseObject *val = pair.second;
-
-        if (parsing_error) {
-            break;
-        }
 
         // Parse id key-value pair
         if (*key == JSON_KEY_ID) {
@@ -481,6 +476,7 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
     }
 
     // Check for errors
+    bool parsing_error = false;
     if (parsed_frames == 0 ||
         parsed_id == NULL ||
         parsed_offsets == NULL ||
