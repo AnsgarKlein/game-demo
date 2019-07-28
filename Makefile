@@ -36,7 +36,7 @@ LIBRARIES  +=  SDL2_image
 
 FLAGS      +=  -Wall -Wextra -Wpedantic
 
-CXXFLAGS   :=  -x c++ -std=c++11
+CXXFLAGS   :=  -x c++ -std=c++17
 CXXFLAGS   +=  -Wall -Wextra -Wpedantic
 CXXFLAGS   +=  $(shell pkg-config --cflags $(LIBRARIES))
 

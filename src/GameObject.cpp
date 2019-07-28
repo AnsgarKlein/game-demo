@@ -37,6 +37,7 @@ bool GameObject::render() {
     return sprites->render(x * 32, y * 32);
 }
 
+// TODO: Remove old render code outside of SpriteSheet
 //bool GameObject::render_animated(const SDL_Texture *text, int x, int y, uint16_t frame_time, uint8_t frames, bool overlay) {
 //    int frame = (GAME_TIME / frame_time) % frames;
 //

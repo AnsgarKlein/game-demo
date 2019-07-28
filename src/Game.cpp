@@ -53,9 +53,6 @@ static void do_command(SDL_Keycode key) {
     PLAYER->move(x, y);
 }
 
-// TODO: Remove Level include
-#include "Level.h"
-
 void game_loop() {
     bool quit = false;
 
@@ -70,18 +67,6 @@ void game_loop() {
     uint8_t rendered_frames = 0;
     struct Timer fps_timer;
     Timer_start(&fps_timer);
-
-
-    // TODO: Remove this
-    printf("game_loop()\n");
-    printf("Loading level..\n");
-    Level *lv = Level_from_file("levels/level.json");
-    if (lv == NULL) {
-        printf("Loaded level is null\n");
-    } else {
-        printf("Loaded level seems legit\n");
-        delete lv;
-    }
 
     // Loop
     SDL_Event e;

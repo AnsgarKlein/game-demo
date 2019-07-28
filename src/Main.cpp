@@ -73,6 +73,22 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    if(!set_level_from_buffer(DEFAULT_LEVEL, strlen(DEFAULT_LEVEL))) {
+        fprintf(stderr, "Could not load level\n");
+        return 1;
+    }
+
+    // TODO: Remove this
+    //printf("Loading level..\n");
+    //Level *lv = Level::Level_from_file("levels/level.json");
+    //if (lv == NULL) {
+    //    printf("Loaded level is null\n");
+    //} else {
+    //    printf("Loaded level seems legit\n");
+    //    //delete lv;
+    //    set_current_level(lv);
+    //}
+
     // Start the game
     game_loop();
 

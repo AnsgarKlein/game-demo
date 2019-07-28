@@ -290,7 +290,7 @@ std::vector<JsonToken> *lex_json(const std::string *text) {
     std::vector<JsonToken> *tokens = new std::vector<JsonToken>;
 
     if (!lex_all(input, tokens)) {
-        delete tokens;
+        JsonTokens_free(tokens);
         return NULL;
     }
 

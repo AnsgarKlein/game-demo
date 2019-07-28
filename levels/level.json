@@ -2,6 +2,10 @@
   "id": "main",
   "height": 3,
   "width": 10,
+  "objects":
+  [
+
+  ],
   "background":
   [
     { "sprite": "wall", "solid": true },
@@ -16,14 +20,14 @@
     { "sprite": "wall", "solid": true },
 
     { "sprite": "wall", "solid": true },
-    { "sprite": "free", "solid": true },
-    { "sprite": "free", "solid": true },
-    { "sprite": "free", "solid": true },
-    { "sprite": "free", "solid": true },
-    { "sprite": "free", "solid": true },
-    { "sprite": "free", "solid": true },
-    { "sprite": "free", "solid": true },
-    { "sprite": "free", "solid": true },
+    { "sprite": "dirt", "solid": true },
+    { "sprite": "dirt", "solid": true },
+    { "sprite": "dirt", "solid": true },
+    { "sprite": "dirt", "solid": true },
+    { "sprite": "dirt", "solid": true },
+    { "sprite": "dirt", "solid": true },
+    { "sprite": "dirt", "solid": true },
+    { "sprite": "dirt", "solid": true },
     { "sprite": "wall", "solid": true },
 
     { "sprite": "wall", "solid": true },
