@@ -46,9 +46,9 @@ LDFLAGS    +=  $(shell pkg-config --libs $(LIBRARIES))
 .PHONY: all clean doc debug optimized
 
 all: $(BUILDDIR)/$(TARGET)
-all: $(addprefix $(SOURCEDIR)/, $(SOURCES))
-all: $(addprefix $(SOURCEDIR)/, $(HEADERS))
 all: $(addprefix $(BUILDDIR)/sprites/, $(SPRITES))
+all: $(addprefix $(SOURCEDIR)/, $(HEADERS))
+all: $(addprefix $(SOURCEDIR)/, $(SOURCES))
 	@#
 
 debug: CXXFLAGS += -g
@@ -102,6 +102,11 @@ clean:
 	@for img in $(wildcard $(BUILDDIR)/$(SPRITESDIR)/*.png); do \
 	  /bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [CLEAN]   $$img" ; \
 	  rm -f $$img ; \
+	done
+
+	@for json in $(wildcard $(BUILDDIR)/$(SPRITESDIR)/*.json); do \
+	  /bin/sh $(SCRIPTDIR)/$(PRINTSCRIPT) " [CLEAN]   $$json" ; \
+	  rm -f $$json ; \
 	done
 	
 	@# Remove object files
