@@ -29,6 +29,11 @@ enum MoveType {
 
 class Player : public GameCharacter {
     private:
+        uint16_t move_start_time;
+        uint16_t move_duration;
+        int move_target_x;
+        int move_target_y;
+
         enum MoveType check_move(int dx, int dy);
         void move_box(int dx, int dy);
     public:

@@ -484,11 +484,12 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
         parsed_mirror_h == NULL ||
         parsed_mirror_v == NULL) {
 
+        // Check if all necessary values have been set
+
         std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
         std::cerr << "Did not find all necessary key-value pairs." << std::endl;
         std::cerr << "Necessary are:" << std::endl;
         std::cerr << "  - " << JSON_KEY_ID << std::endl;
-        std::cerr << "  - " << JSON_KEY_FRAME_TIME << std::endl;
         std::cerr << "  - " << JSON_KEY_OFFSETS << std::endl;
         std::cerr << "  - " << JSON_KEY_ROTATE << std::endl;
         std::cerr << "  - " << JSON_KEY_MIRROR_H << std::endl;
@@ -499,9 +500,38 @@ SpriteState *SpriteState_from_json(JsonObject *obj) {
                parsed_mirror_v->size() != (size_t)parsed_frames ||
                parsed_offsets->size()  != (size_t)parsed_frames) {
 
+        // Check if parsed arrays have the same size
+
         std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
         std::cerr << "Key-value pairs are malformed." << std::endl;
         std::cerr << "Necessary arrays dont have the same length." << std::endl;
+
+        parsing_error = true;
+    } else if (parsed_render_type == RENDER_STATIC && parsed_frames != 1) {
+        // Check if multiple frames are supposed to be rendered statically.
+        // Because this is not necessary it seems to indicate an error in the
+        // configuration.
+        // Multiple frames have to be animated or it has to be possible to
+        // somehow know what frame to render.
+
+        std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
+        std::cerr << "Cannot render multiple frames statically." << std::endl;
+        std::cerr << "Specify how to render multiple frames with '";
+        std::cerr << JSON_KEY_RENDER_TYPE << "' option." << std::endl;
+        std::cerr << std::endl;
+
+        parsing_error = true;
+    } else if (parsed_render_type == RENDER_ANIMATED && parsed_frame_time <= 0) {
+        // Check if animation is requested but frame time is set to zero.
+        // This is not possible and seems to indicate an error in the
+        // configuration.
+
+        std::cerr << "Error when parsing states of SpriteSheet." << std::endl;
+        std::cerr << "Cannot render multiple frames animated with '";
+        std::cerr << JSON_KEY_FRAME_TIME << "=0' !" << std::endl;
+        std::cerr << "Specify value greater than zero for animation speed ";
+        std::cerr << "with " << JSON_KEY_FRAME_TIME << " option." << std::endl;
+        std::cerr << std::endl;
 
         parsing_error = true;
     }

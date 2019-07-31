@@ -9,10 +9,6 @@ GameObject::GameObject(int x, int y, SpriteSheet *sprites) {
     this->x = x;
     this->y = y;
     this->sprites = sprites;
-
-    if (sprites == NULL) {
-        fprintf(stderr, "Creating object without sprite sheet at (%d,%d)!\n", x, y);
-    }
 }
 
 GameObject::~GameObject() {
@@ -28,9 +24,11 @@ int GameObject::get_y() {
 }
 
 bool GameObject::render() {
-    if (this->sprites == NULL) {
-        // TODO: Decide whether invisible objects would run this code
-        printf("displayed invisible object\n");
+    if (sprites == NULL) {
+        std::cerr << "Error when displaying GameObject at (";
+        std::cerr << x << ',' << y << ")" << std::endl;
+        std::cerr << "No sprite to display!" << std::endl;
+        std::cerr << std::endl;
         return true;
     }
 

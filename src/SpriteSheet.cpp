@@ -498,9 +498,9 @@ bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) 
         return false;
     }
 
-    // Don't render if position is off camera
-    //    (Except do render the tile exactly next to the 
-    //    camera because it could partly be inside the camera)
+    // Don't render if position is off camera.
+    // Exception: Do render the tile exactly next to the camera because
+    // it could partly be inside the camera.
     if (x + GRID_SIZE < CAMERA_X || y + GRID_SIZE < CAMERA_Y) {
         return false;
     }
@@ -533,16 +533,15 @@ bool SpriteSheet::renderINT(unsigned int x, unsigned int y, SpriteState *state) 
         return false;
     }
 
-    // Select the correct sprite
+    // Select the correct sprite depending on how to render the frames
     int frame_i;
     if (state->get_render_type() == RENDER_ANIMATED) {
         int frame_time = state->get_frame_time();
         if (frame_time == 0) {
-            // Dont divide by zero when frame time
-            // is not set (but should be set).
+            // Dont divide by zero when frame time is not set
             frame_i = 0;
         } else {
-            frame_i = (GAME_TIME / state->get_frame_time()) % sprite_count;
+            frame_i = (GAME_TIME / frame_time) % sprite_count;
         }
     } else if (state->get_render_type() == RENDER_PERMUTATED) {
         frame_i = ((y / GRID_SIZE) * CURRENT_LEVEL->get_width() + (x / GRID_SIZE)) % sprite_count;

@@ -4,17 +4,20 @@
 #include "Level.h"
 #include "SpriteHandler.h"
 #include "View.h"
+#include "Game.h"
 
 
 Player *PLAYER = NULL;
 
 
 Player::Player(int x, int y, SpriteSheet *sprites) : GameCharacter(x, y, sprites) {
-    //
+    move_duration = 150;
+    move_start_time = 0;
 }
 
 Player::Player(int x, int y, std::string sprite_str) : GameCharacter(x, y, SPRITE_HANDLER->get(sprite_str)) {
-    //
+    move_duration = 150;
+    move_start_time = 0;
 }
 
 Player::~Player() {
@@ -71,6 +74,20 @@ MoveType Player::check_move(int dx, int dy) {
  * Draws Sokoban at the current position onto the screen.
 **/
 bool Player::render() {
+    // Calculate location depending on animation progress
+    //int diff;
+    //if (move_target_x == x) {
+    //    diff = (move_target_y > y) ? move_target_y - y : y - move_target_y;
+    //} else {
+    //    diff = (move_target_x > x) ? move_target_x - x : x - move_target_x;
+    //}
+    //double animation_progress = move_start_time + move_duration - GAME_TIME;
+    //double move_progress = (diff / (double)move_duration) * animation_progress;
+
+    //printf("animation_progress: %f\n", animation_progress);
+    //printf("move_progress: %f\n", move_progress);
+
+    //
     switch (facing) {
         case FACING_UP:
             return this->sprites->render(x * GRID_SIZE, y * GRID_SIZE, "facing_north");
@@ -105,6 +122,16 @@ void Player::set_coordinates(int x, int y) {
  * @param dy The value to Sokoban in y direction
  */
 void Player::move(int dx, int dy) {
+    //printf("%d + %d > %d\n", move_start_time, move_duration, GAME_TIME);
+    //// If current move is not yet finished do nothing
+    //if (move_start_time + move_duration > GAME_TIME) {
+    //    printf("still in move animation - cannot move again\n");
+    //    return;
+    //}
+
+    //// Start moving
+    //move_start_time = GAME_TIME;
+
     // Set direction Sokoban is facing
     if (dx > 0) {
         facing = FACING_RIGHT;

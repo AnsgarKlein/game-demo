@@ -11,8 +11,6 @@ class Target : public DynamicObject {
 
         virtual bool is_pushable(int dx, int dy);
         virtual bool push(int dx, int dy);
-
-        virtual bool render();
 };
 
 #endif

@@ -26,6 +26,3 @@ bool Target::push(int dx, int dy) {
     return true;
 }
 
-bool Target::render() {
-    return sprites->render(x * GRID_SIZE, y * GRID_SIZE);
-}
