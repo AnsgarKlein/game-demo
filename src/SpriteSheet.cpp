@@ -396,6 +396,13 @@ static bool loadIMG_from_file(SDL_Texture **texture, const char *filename) {
     }
     SDL_FreeSurface(surf);
 
+    // TODO: Check if texture contains transparent pixels then set blend mode
+    //SDL_SetTextureBlendMode(*texture, SDL_BLENDMODE_NONE);
+    //SDL_SetTextureBlendMode(*texture, SDL_BLENDMODE_BLEND);
+
+    // Alternatively:
+    // TODO: Replace transparent pixels in texture by purple and set color key
+
     return true;
 }
 

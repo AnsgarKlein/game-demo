@@ -25,6 +25,7 @@
     },
     {
       "id": "shining",
+      "render_type": "animate",
       "frame_time": 200,
       "points":
       [

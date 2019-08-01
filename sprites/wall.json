@@ -5,7 +5,8 @@
   [
     {
       "id": "default",
-      "frame_time": 0,
+      "render_type": "permutate",
+      "frame_time": 200,
       "points":
       [
         { "x": 0, "y": 0 },
