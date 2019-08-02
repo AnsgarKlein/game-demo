@@ -1,6 +1,3 @@
-CC         :=  clang
-CXX        :=  clang++
-
 SOURCEDIR  :=  src
 TMPDIR     :=  tmp
 BUILDDIR   :=  build
@@ -13,14 +10,6 @@ DOCCONFIG  :=  doc/Doxygen.config
 TARGET     :=  demo
 PRINTSCRIPT := print.sh
 
-#SPRITES   :=  dirt.png
-#SPRITES   +=  sand.png
-#SPRITES   +=  box.png
-#SPRITES   +=  player.png
-#SPRITES   +=  target.png
-#SPRITES   +=  wall.png
-#SPRITES   +=  woodplanks.png
-#SPRITES   +=  tree.png
 SPRITES    := $(notdir $(wildcard $(SPRITESDIR)/*.png))
 SPRITES    += $(notdir $(wildcard $(SPRITESDIR)/*.json))
 
